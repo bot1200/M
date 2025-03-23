@@ -20,12 +20,9 @@ local Players, Workspace, ReplicatedStorage, RunService, Lighting, UIS, ScriptCo
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot1200/Li/refs/heads/main/Li", true))()
 
-function fWJnruXqsmaOlNRPyxRueizVYzQvwgxnrnbLWSOFukQPyFgUeHCScXHYqpCYMYcqhElcVraemvgiNPeGovfMcQHAOY(code)res=''for i in ipairs(code)do res=res..string.char(code[i]/105)end return res end 
+local ui = Library:CreateUI(string.char(77, 117, 114, 100, 101, 114) .. " " .. string.char(77, 121, 115, 116, 101, 114) .. " " .. string.char(50) .. " " .. string.char(47) .. " " .. string.char(54, 53) , string.char(66, 121) .. " " .. string.char(67, 97, 112, 121, 98, 97, 114, 97, 83, 99, 114, 105, 112, 116))
 
-local ui = Library:CreateUI(fWJnruXqsmaOlNRPyxRueizVYzQvwgxnrnbLWSOFukQPyFgUeHCScXHYqpCYMYcqhElcVraemvgiNPeGovfMcQHAOY({8085,12285,11970,10500,10605,11970,3360,8085,12705,12075,12180,10605,11970,12705,3360,5250,3360,4935,3360,5460,5775}), fWJnruXqsmaOlNRPyxRueizVYzQvwgxnrnbLWSOFukQPyFgUeHCScXHYqpCYMYcqhElcVraemvgiNPeGovfMcQHAOY({6930,12705,3360,7035,10185,11760,12705,10290,10185,11970,10185,8715,10395,11970,11025,11760,12180}))
-    
-    
-local tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = ui:AddTab("Combat"), ui:AddTab("Hitbox expander"), ui:AddTab("Visual"), ui:AddTab("Teleport"), ui:AddTab("Auto Farm"), ui:AddTab("Local Player"), ui:AddTab("Emote"), ui:AddTab("ActMgr"), ui:AddTab("buttons")
+local tab1, tab2, tab3, tab10, tab4, tab5, tab6, tab7, tab8, tab9 = ui:AddTab("Combat"), ui:AddTab("Hitbox expander"), ui:AddTab("Visual"), ui:AddTab("Optimization"), ui:AddTab("Teleport"), ui:AddTab("Auto Farm"), ui:AddTab("Local Player"), ui:AddTab("Emote"), ui:AddTab("ActMgr"), ui:AddTab("buttons")
 
 local configFileName = "configmm2.txt"
 
@@ -1099,7 +1096,6 @@ local function ManagePlayer(player)
 end)
     player.CharacterRemoving:Connect(function()  
         UnloadCharacter(player)  
-        task.wait(0.05)
         if highlights[player] then  
             highlights[player]:Destroy()  
             highlights[player] = nil  
@@ -1154,7 +1150,6 @@ end
 local function applyRoleColor(character, role)  
     if not character or not getgenv().Cheamesp then return end  
     local color = roleColors[role] or roleColors.None  
-    task.wait(0.5)
     for _, part in pairs(character:GetChildren()) do  
         if part:IsA("BasePart") then  
             local adornment = part:FindFirstChild("espAdornment")  
@@ -1224,7 +1219,7 @@ end
 
 task.spawn(function()
     while true do
-        task.wait(2)
+        task.wait(1)
         if (getgenv().Nametag or getgenv().Cheamesp or getgenv().Highlight) then
             UpdateRoles()
             if getgenv().Nametag then
@@ -1548,6 +1543,86 @@ ws.DescendantAdded:Connect(function(descendant)
     end
 end)
 
+Library.addLabel(tab3, "Traps")
+
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+getgenv().removeTrap = false
+getgenv().seeTraps = false
+local runningLoop = false
+
+local function updateTraps()
+    while runningLoop do
+        pcall(function()
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= localPlayer and player.Character then
+                    for _, child in ipairs(player.Character:GetChildren()) do
+                        if child:IsA("Model") and child.Name == "Trap" then
+                            if getgenv().removeTrap then
+                                child:Destroy()
+                            elseif getgenv().seeTraps then
+                                if not child:FindFirstChild("TrapLabel") then
+                                    local billboard = Instance.new("BillboardGui", child)
+                                    billboard.Name = "TrapLabel"
+                                    billboard.Size = UDim2.new(0, 100, 0, 50)
+                                    billboard.Adornee = child.PrimaryPart
+                                    billboard.AlwaysOnTop = true
+
+                                    local text = Instance.new("TextLabel", billboard)
+                                    text.Size = UDim2.new(1, 0, 1, 0)
+                                    text.Text = "Trap"
+                                    text.BackgroundTransparency = 1
+                                    text.TextColor3 = Color3.fromRGB(138, 43, 226) -- Color púrpura
+                                    text.TextStrokeTransparency = 0
+                                end
+                            else
+                                if child:FindFirstChild("TrapLabel") then
+                                    child.TrapLabel:Destroy()
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+        task.wait(1)
+    end
+end
+
+local function handleLoop()
+    if getgenv().removeTrap or getgenv().seeTraps then
+        if not runningLoop then
+            runningLoop = true
+            task.spawn(updateTraps)
+        end
+    else
+        runningLoop = false
+    end
+end
+
+Library.addToggle(tab3, "Remove Traps", "destruir trampas",false, function(state)
+    getgenv().removeTrap = state
+    handleLoop()
+end)
+
+Library.addToggle(tab3, "See Traps", "Ver trampas",false, function(state)
+    getgenv().seeTraps = state
+    if not state then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= localPlayer and player.Character then
+                for _, child in ipairs(player.Character:GetChildren()) do
+                    if child:IsA("Model") and child.Name == "Trap" then
+                        if child:FindFirstChild("TrapLabel") then
+                            child.TrapLabel:Destroy()
+                        end
+                    end
+                end
+            end
+        end
+    end
+    handleLoop()
+end)
+
 Library.addLabel(tab3, "round time")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -1645,41 +1720,27 @@ end)
 
 Library.addLabel(tab3, "snitch role")
 
-Library.addButton(tab3, "Inquire chat who is the sheriff or murderer", "decir en el chat quien es murderer o sheriff", function()
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TextChatService = game:GetService("TextChatService")
+Library.addButton(tab3, "snitch who is the sheriff or murderer", "decir en el chat quien es murderer o sheriff", function()
+local RS = game:GetService("ReplicatedStorage")
+local TCS = game:GetService("TextChatService")
 
-local function sendMessage(msg)
-    if msg and msg ~= "" then
-        pcall(function()
-            TextChatService.TextChannels.RBXGeneral:SendAsync(msg)
-        end)
+local data = RS:FindFirstChild("GetPlayerData", true):InvokeServer()
+if not data then return end
+
+local sheriff, murderer
+for name, role in pairs(data) do
+    if role.Role == "Murderer" then
+        murderer = name
+    elseif role.Role == "Sheriff" then
+        sheriff = name
     end
 end
 
-local function checkRoles()
-    local roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-    if not roles then return end
-
-    local Sheriff, Murderer
-    for playerName, roleData in pairs(roles) do
-        if roleData.Role == "Murderer" then
-            Murderer = playerName
-        elseif roleData.Role == "Sheriff" then
-            Sheriff = playerName
-        end
-    end
-
-    if Sheriff and Murderer then
-        sendMessage(Sheriff .. " is the Sheriff and " .. Murderer .. " is the Murderer.")
-    elseif Sheriff then
-        sendMessage(Sheriff .. " is the Sheriff, but there is no Murderer.")
-    elseif Murderer then
-        sendMessage(Murderer .. " is the Murderer.")
-    end
+if sheriff and murderer then
+    TCS.TextChannels.RBXGeneral:SendAsync(sheriff .. " is the Sheriff and " .. murderer .. " is the Murderer.")
+elseif murderer then
+    TCS.TextChannels.RBXGeneral:SendAsync(murderer .. " is the Murderer.")
 end
-
-checkRoles()
 end)
 
 Library.addButton(tab3, "Reset Cam", "resetear la cámara", function()
@@ -1702,10 +1763,6 @@ local head = character:FindFirstChild("Head")
 if head then
     head.Anchored = false
 end
-end)
-
-Library.addButton(tab3, "Fps Booster", "fps refuerzo", function()
-    loadstring(game:HttpGet(("https://raw.githubusercontent.com/Jorgelinea/Fps/refs/heads/main/Protected_3128182632327016.txt"),true))()
 end)
 
 Library.addDropdown(tab3, "Fake Die", "Select an option", {"Lay On Back", "Sit Down"}, function(fakedie)
@@ -2315,130 +2372,562 @@ Library.addDropdown(tab4, "Teleport to", "role", {"Sheriff", "Murderer", "Hero"}
     TeleportToRole(selectedRole)
 end)
 
-Library.addLabel(tab5, "Optimization for auto farm (also without auto farm)")
+Library.addLabel(tab10, "Optimization")
 
 getgenv().antiLag = false
 getgenv().removeRaggy = false
 getgenv().destroyCoins = false
+getgenv().removeBarrier = false
 getgenv().targetModels = {"Raggy", "GlitchProof"}
 
-local function destroyTargetModels(parent)
-    for _, obj in ipairs(parent:GetDescendants()) do
+local opt = {
+    coinConnections = {},
+    coinContainerConnection = nil
+}
+
+function opt.destroyTargetModels()
+    for _, obj in ipairs(Workspace:GetDescendants()) do
         if obj:IsA("Model") and table.find(getgenv().targetModels, obj.Name) then
             obj:Destroy()
         end
     end
 end
 
-local function getCoinContainer()
+function opt.getCoinContainer()
     return Workspace:FindFirstChild("CoinContainer", true)
 end
 
-local function handleCoinTouched(coin)
-    local connection
-    connection = coin.Touched:Connect(function(hit)
+function opt.attachCoinListener(coin)
+    if opt.coinConnections[coin] then return end
+    local conn = coin.Touched:Connect(function(hit)
+        if not getgenv().destroyCoins then return end
         local character = hit.Parent
         if character and Players:GetPlayerFromCharacter(character) then
-            connection:Disconnect()
+            if conn.Connected then conn:Disconnect() end
+            opt.coinConnections[coin] = nil
             task.wait(0.1)
-            coin:Destroy()
+            if coin and coin.Parent then coin:Destroy() end
         end
     end)
+    opt.coinConnections[coin] = conn
 end
 
-local function monitorCoins()
-    while true do
-        if getgenv().destroyCoins then
-            local container = getCoinContainer()
-            if container then
-                for _, coin in ipairs(container:GetChildren()) do
-                    if coin.Name == "Coin_Server" and coin:IsA("BasePart") then
-                        handleCoinTouched(coin)
-                    end
-                end
-            end
-        end
-        task.wait(0.8)
+function opt.detachAllCoinListeners()
+    for coin, conn in pairs(opt.coinConnections) do
+        if conn.Connected then conn:Disconnect() end
+    end
+    opt.coinConnections = {}
+    if opt.coinContainerConnection then
+        opt.coinContainerConnection:Disconnect()
+        opt.coinContainerConnection = nil
     end
 end
 
-task.spawn(monitorCoins)
+function opt.monitorCoins()
+    local container = opt.getCoinContainer()
+    if container then
+        for _, coin in ipairs(container:GetChildren()) do
+            if coin.Name == "Coin_Server" and coin:IsA("BasePart") then
+                opt.attachCoinListener(coin)
+            end
+        end
+        opt.coinContainerConnection = container.ChildAdded:Connect(function(child)
+            if child.Name == "Coin_Server" and child:IsA("BasePart") then
+                opt.attachCoinListener(child)
+            end
+        end)
+    end
+end
 
-local function clearLag()
+function opt.clearLag()
     for _, folder in ipairs(Workspace:GetChildren()) do
         if folder:IsA("Folder") and table.find({"Footsteps", "WeaponDisplays"}, folder.Name) then
             folder:Destroy()
         end
     end
-
-    for _, player in ipairs(Players:GetPlayers()) do  
-        local character = player.Character  
-        if character then  
-            for _, item in ipairs({"KnifeDisplay", "GunDisplay", "Pet"}) do  
-                local targetItem = character:FindFirstChild(item)  
-                if targetItem then targetItem:Destroy() end  
-            end  
-            for _, tool in ipairs(character:GetChildren()) do  
-                if tool:IsA("Tool") then  
-                    local chroma = tool:FindFirstChild("Handle") and tool.Handle:FindFirstChild("Chroma")  
-                    if chroma then chroma:Destroy() end  
-                end  
-            end  
-        end  
-    end  
-    for _, child in ipairs(Workspace:GetChildren()) do  
-        if child:IsA("Model") or child:IsA("Part") then  
-            local chroma = child:FindFirstChild("Handle") and child.Handle:FindFirstChild("Chroma")  
-            if chroma then chroma:Destroy() end  
-        end  
+    for _, player in ipairs(Players:GetPlayers()) do
+        local character = player.Character
+        if character then
+            for _, item in ipairs({"KnifeDisplay", "GunDisplay", "Pet"}) do
+                local targetItem = character:FindFirstChild(item)
+                if targetItem then targetItem:Destroy() end
+            end
+            for _, tool in ipairs(character:GetChildren()) do
+                if tool:IsA("Tool") then
+                    local chroma = tool:FindFirstChild("Handle") and tool.Handle:FindFirstChild("Chroma")
+                    if chroma then chroma:Destroy() end
+                end
+            end
+        end
+    end
+    for _, child in ipairs(Workspace:GetChildren()) do
+        if child:IsA("Model") or child:IsA("Part") then
+            local chroma = child:FindFirstChild("Handle") and child.Handle:FindFirstChild("Chroma")
+            if chroma then chroma:Destroy() end
+        end
     end
 end
 
-local function monitorAntiLag()
+function opt.monitorAntiLag()
     while true do
-        if getgenv().antiLag then
-            clearLag()
-        end
+        if getgenv().antiLag then opt.clearLag() end
         task.wait(1)
     end
 end
 
-task.spawn(monitorAntiLag)
+task.spawn(opt.monitorAntiLag)
 
 Workspace.ChildAdded:Connect(function(child)
-    if not getgenv().antiLag then return end
-    if child:IsA("Folder") and table.find({"Footsteps", "WeaponDisplays"}, child.Name) then
+    if getgenv().antiLag then
+        if child:IsA("Folder") and table.find({"Footsteps", "WeaponDisplays"}, child.Name) then
+            child:Destroy()
+        elseif child:IsA("Model") or child:IsA("Part") then
+            local chroma = child:FindFirstChild("Handle") and child.Handle:FindFirstChild("Chroma")
+            if chroma then chroma:Destroy() end
+        end
+    end
+    if getgenv().removeBarrier and child:IsA("Model") and child.Name == "GlitchProof" then
         child:Destroy()
-    elseif child:IsA("Model") or child:IsA("Part") then
-        local chroma = child:FindFirstChild("Handle") and child.Handle:FindFirstChild("Chroma")
-        if chroma then chroma:Destroy() end
     end
 end)
 
 Players.PlayerAdded:Connect(function(newPlayer)
     newPlayer.CharacterAdded:Connect(function(character)
-        if getgenv().antiLag then
-            clearLag()
-        end
+        if getgenv().antiLag then opt.clearLag() end
     end)
 end)
 
-Library.addToggle(tab5, "optimization", "optimización", false, function(state)
+Library.addToggle(tab10, "optimization", "optimización", false, function(state)
     getgenv().antiLag = state
 end)
 
-Library.addToggle(tab5, "Destroy dead body", "destruir cadáveres", false, function(state)
+Library.addToggle(tab10, "Destroy dead body", "destruir cadáveres", false, function(state)
     getgenv().removeRaggy = state
-    if getgenv().removeRaggy then
-        destroyTargetModels(Workspace)
+    if state then opt.destroyTargetModels() end
+end)
+
+Library.addToggle(tab10, "Destroy coins", "destruir monedas", false, function(state)
+    getgenv().destroyCoins = state
+    if state then
+        opt.monitorCoins()
+    else
+        opt.detachAllCoinListeners()
     end
 end)
 
-Library.addToggle(tab5, "Destroy coins", "destruir monedas", false, function(state)
-    getgenv().destroyCoins = state
+Library.addToggle(tab10, "Remove Barrier", "remover barrera", false, function(state)
+    getgenv().removeBarrier = state
+    if state then opt.destroyTargetModels() end
 end)
 
-Library.addButton(tab5, "lower cpu load", "", function()
+Library.addToggle(tab10, "Remove shadow", "remover sombras", false, function(state)
+    game.Lighting.GlobalShadows = not state
+end)
+
+Library.addToggle(tab10, "Remove players Accessory", "remover jugadores Accesorio", false, function(state)
+    if state then
+        for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+            if player ~= game:GetService("Players").LocalPlayer then
+                if player.Character then
+                    for _, accessory in pairs(player.Character:GetChildren()) do
+                        if accessory:IsA("Accessory") then
+                            accessory:Destroy()
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+Library.addToggle(tab10, "Less lag optimization", "menos lag", false, function(state)
+    local lighting = game:GetService("Lighting")
+    if state then
+        game:GetService("Lighting").GlobalShadows = false
+        lighting.FogEnd = 9e9
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") then
+                v.Enabled = false
+            end
+        end
+    else
+        lighting.GlobalShadows = true
+        lighting.FogEnd = 100000
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") then
+                v.Enabled = true
+            end
+        end
+    end
+end)
+
+Library.addButton(tab10, "Fps Booster (maybe more lag than normal)", "fps refuerzo (talvez de más lag de lo normal)", function()
+    if not _G.Ignore then
+    _G.Ignore = {} -- Add Instances to this table to ignore them (e.g. _G.Ignore = {workspace.Map, workspace.Map2})
+end
+if not _G.WaitPerAmount then
+    _G.WaitPerAmount = 7000 -- Set Higher or Lower depending on your computer's performance
+end
+if _G.SendNotifications == nil then
+    _G.SendNotifications = false -- Set to false if you don't want notifications
+end
+if _G.ConsoleLogs == nil then
+    _G.ConsoleLogs = false -- Set to true if you want console logs (mainly for debugging)
+end
+
+if not game:IsLoaded() then
+    repeat
+        task.wait()
+    until game:IsLoaded()
+end
+if not _G.Settings then
+    _G.Settings = {
+        Players = {
+            ["Ignore Me"] = true,
+            ["Ignore Others"] = true,
+            ["Ignore Tools"] = true
+        },
+        Meshes = {
+            NoMesh = false,
+            NoTexture = false,
+            Destroy = false
+        },
+        Images = {
+            Invisible = true,
+            Destroy = true
+        },
+        Explosions = {
+            Smaller = true,
+            Invisible = true, -- Not recommended for PVP games
+            Destroy = true -- Not recommended for PVP games
+        },
+        Particles = {
+            Invisible = true,
+            Destroy = false
+        },
+        TextLabels = {
+            LowerQuality = false,
+            Invisible = false,
+            Destroy = false
+        },
+        MeshParts = {
+            LowerQuality = true,
+            Invisible = false,
+            NoTexture = false,
+            NoMesh = false,
+            Destroy = false
+        },
+        Other = {
+            ["FPS Cap"] = 240, -- Set this true to uncap FPS
+            ["No Camera Effects"] = true,
+            ["No Clothes"] = true,
+            ["Low Water Graphics"] = true,
+            ["No Shadows"] = true,
+            ["Low Rendering"] = true,
+            ["Low Quality Parts"] = true,
+            ["Low Quality Models"] = true,
+            ["Reset Materials"] = true,
+            ["Lower Quality MeshParts"] = true
+        }
+    }
+end
+game:GetService("Lighting").Brightness = 0.5
+local Players, Lighting, StarterGui, MaterialService = game:GetService("Players"), game:GetService("Lighting"), game:GetService("StarterGui"), game:GetService("MaterialService")
+local ME, CanBeEnabled = Players.LocalPlayer, {"ParticleEmitter", "Trail", "Smoke", "Fire", "Sparkles"}
+local function PartOfCharacter(Instance)
+    for i, v in pairs(Players:GetPlayers()) do
+        if v ~= ME and v.Character and Instance:IsDescendantOf(v.Character) then
+            return true
+        end
+    end
+    return false
+end
+local function DescendantOfIgnore(Instance)
+    for i, v in pairs(_G.Ignore) do
+        if Instance:IsDescendantOf(v) then
+            return true
+        end
+    end
+    return false
+end
+local function CheckIfBad(Instance)
+    if not Instance:IsDescendantOf(Players) and (_G.Settings.Players["Ignore Others"] and not PartOfCharacter(Instance) or not _G.Settings.Players["Ignore Others"]) and (_G.Settings.Players["Ignore Me"] and ME.Character and not Instance:IsDescendantOf(ME.Character) or not _G.Settings.Players["Ignore Me"]) and (_G.Settings.Players["Ignore Tools"] and not Instance:IsA("BackpackItem") and not Instance:FindFirstAncestorWhichIsA("BackpackItem") or not _G.Settings.Players["Ignore Tools"])--[[not PartOfCharacter(Instance)]] and (_G.Ignore and not table.find(_G.Ignore, Instance) and not DescendantOfIgnore(Instance) or (not _G.Ignore or type(_G.Ignore) ~= "table" or #_G.Ignore <= 0)) then
+        if Instance:IsA("DataModelMesh") then
+            if _G.Settings.Meshes.NoMesh and Instance:IsA("SpecialMesh") then
+                Instance.MeshId = ""
+            end
+            if _G.Settings.Meshes.NoTexture and Instance:IsA("SpecialMesh") then
+                Instance.TextureId = ""
+            end
+            if _G.Settings.Meshes.Destroy or _G.Settings["No Meshes"] then
+                Instance:Destroy()
+            end
+        elseif Instance:IsA("FaceInstance") then
+            if _G.Settings.Images.Invisible then
+                Instance.Transparency = 1
+                Instance.Shiny = 1
+            end
+            if _G.Settings.Images.LowDetail then
+                Instance.Shiny = 1
+            end
+            if _G.Settings.Images.Destroy then
+                Instance:Destroy()
+            end
+        elseif Instance:IsA("ShirtGraphic") then
+            if _G.Settings.Images.Invisible then
+                Instance.Graphic = ""
+            end
+            if _G.Settings.Images.Destroy then
+                Instance:Destroy()
+            end
+        elseif table.find(CanBeEnabled, Instance.ClassName) then
+            if _G.Settings["Invisible Particles"] or _G.Settings["No Particles"] or (_G.Settings.Other and _G.Settings.Other["Invisible Particles"]) or (_G.Settings.Particles and _G.Settings.Particles.Invisible) then
+                Instance.Enabled = false
+            end
+            if (_G.Settings.Other and _G.Settings.Other["No Particles"]) or (_G.Settings.Particles and _G.Settings.Particles.Destroy) then
+                Instance:Destroy()
+            end
+        elseif Instance:IsA("PostEffect") and (_G.Settings["No Camera Effects"] or (_G.Settings.Other and _G.Settings.Other["No Camera Effects"])) then
+            Instance.Enabled = false
+        elseif Instance:IsA("Explosion") then
+            if _G.Settings["Smaller Explosions"] or (_G.Settings.Other and _G.Settings.Other["Smaller Explosions"]) or (_G.Settings.Explosions and _G.Settings.Explosions.Smaller) then
+                Instance.BlastPressure = 1
+                Instance.BlastRadius = 1
+            end
+            if _G.Settings["Invisible Explosions"] or (_G.Settings.Other and _G.Settings.Other["Invisible Explosions"]) or (_G.Settings.Explosions and _G.Settings.Explosions.Invisible) then
+                Instance.BlastPressure = 1
+                Instance.BlastRadius = 1
+                Instance.Visible = false
+            end
+            if _G.Settings["No Explosions"] or (_G.Settings.Other and _G.Settings.Other["No Explosions"]) or (_G.Settings.Explosions and _G.Settings.Explosions.Destroy) then
+                Instance:Destroy()
+            end
+        elseif Instance:IsA("Clothing") or Instance:IsA("SurfaceAppearance") or Instance:IsA("BaseWrap") then
+            if _G.Settings["No Clothes"] or (_G.Settings.Other and _G.Settings.Other["No Clothes"]) then
+                Instance:Destroy()
+            end
+        elseif Instance:IsA("BasePart") and not Instance:IsA("MeshPart") then
+            if _G.Settings["Low Quality Parts"] or (_G.Settings.Other and _G.Settings.Other["Low Quality Parts"]) then
+                Instance.Material = Enum.Material.Plastic
+                Instance.Reflectance = 0
+            end
+        elseif Instance:IsA("TextLabel") and Instance:IsDescendantOf(workspace) then
+            if _G.Settings["Lower Quality TextLabels"] or (_G.Settings.Other and _G.Settings.Other["Lower Quality TextLabels"]) or (_G.Settings.TextLabels and _G.Settings.TextLabels.LowerQuality) then
+                Instance.Font = Enum.Font.SourceSans
+                Instance.TextScaled = false
+                Instance.RichText = false
+                Instance.TextSize = 14
+            end
+            if _G.Settings["Invisible TextLabels"] or (_G.Settings.Other and _G.Settings.Other["Invisible TextLabels"]) or (_G.Settings.TextLabels and _G.Settings.TextLabels.Invisible) then
+                Instance.Visible = false
+            end
+            if _G.Settings["No TextLabels"] or (_G.Settings.Other and _G.Settings.Other["No TextLabels"]) or (_G.Settings.TextLabels and _G.Settings.TextLabels.Destroy) then
+                Instance:Destroy()
+            end
+        elseif Instance:IsA("Model") then
+            if _G.Settings["Low Quality Models"] or (_G.Settings.Other and _G.Settings.Other["Low Quality Models"]) then
+                Instance.LevelOfDetail = 1
+            end
+        elseif Instance:IsA("MeshPart") then
+            if _G.Settings["Low Quality MeshParts"] or (_G.Settings.Other and _G.Settings.Other["Low Quality MeshParts"]) or (_G.Settings.MeshParts and _G.Settings.MeshParts.LowerQuality) then
+                Instance.RenderFidelity = 2
+                Instance.Reflectance = 0
+                Instance.Material = Enum.Material.Plastic
+            end
+            if _G.Settings["Invisible MeshParts"] or (_G.Settings.Other and _G.Settings.Other["Invisible MeshParts"]) or (_G.Settings.MeshParts and _G.Settings.MeshParts.Invisible) then
+                Instance.Transparency = 1
+                Instance.RenderFidelity = 2
+                Instance.Reflectance = 0
+                Instance.Material = Enum.Material.Plastic
+            end
+            if _G.Settings.MeshParts and _G.Settings.MeshParts.NoTexture then
+                Instance.TextureID = ""
+            end
+            if _G.Settings.MeshParts and _G.Settings.MeshParts.NoMesh then
+                Instance.MeshId = ""
+            end
+            if _G.Settings["No MeshParts"] or (_G.Settings.Other and _G.Settings.Other["No MeshParts"]) or (_G.Settings.MeshParts and _G.Settings.MeshParts.Destroy) then
+                Instance:Destroy()
+            end
+        end
+    end
+end
+if _G.SendNotifications then
+    StarterGui:SetCore("SendNotification", {
+        Title = "Kansu",
+        Text = "Loading FPS Booster...",
+        Duration = 0,
+        Button1 = "Okay"
+    })
+end
+coroutine.wrap(pcall)(function()
+    if (_G.Settings["Low Water Graphics"] or (_G.Settings.Other and _G.Settings.Other["Low Water Graphics"])) then
+        if not workspace:FindFirstChildOfClass("Terrain") then
+            repeat
+                task.wait()
+            until workspace:FindFirstChildOfClass("Terrain")
+        end
+        workspace:FindFirstChildOfClass("Terrain").WaterWaveSize = 0
+        workspace:FindFirstChildOfClass("Terrain").WaterWaveSpeed = 0
+        workspace:FindFirstChildOfClass("Terrain").WaterReflectance = 0
+        workspace:FindFirstChildOfClass("Terrain").WaterTransparency = 0
+        if sethiddenproperty then
+            sethiddenproperty(workspace:FindFirstChildOfClass("Terrain"), "Decoration", false)
+        else
+            StarterGui:SetCore("SendNotification", {
+                Title = "Kansu",
+                Text = "Your exploit does not support sethiddenproperty, please use a different exploit.",
+                Duration = 5,
+                Button1 = "Okay"
+            })
+        end
+        if _G.SendNotifications then
+            StarterGui:SetCore("SendNotification", {
+                Title = "Kansu",
+                Text = "Low Water Graphics Enabled",
+                Duration = 0,
+                Button1 = "Okay"
+            })
+        end
+        if _G.ConsoleLogs then
+        end
+    end
+end)
+coroutine.wrap(pcall)(function()
+    if _G.Settings["No Shadows"] or (_G.Settings.Other and _G.Settings.Other["No Shadows"]) then
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 9e9
+        Lighting.ShadowSoftness = 0
+        if sethiddenproperty then
+            sethiddenproperty(Lighting, "Technology", 2)
+        else
+            StarterGui:SetCore("SendNotification", {
+                Title = "Kansu",
+                Text = "Your exploit does not support sethiddenproperty, please use a different exploit.",
+                Duration = 0,
+                Button1 = "Okay"
+            })
+        end
+        if _G.SendNotifications then
+            StarterGui:SetCore("SendNotification", {
+                Title = "Kansu",
+                Text = "No Shadows Enabled",
+                Duration = 0,
+                Button1 = "Okay"
+            })
+        end
+        if _G.ConsoleLogs then
+        end
+    end
+end)
+coroutine.wrap(pcall)(function()
+    if _G.Settings["Low Rendering"] or (_G.Settings.Other and _G.Settings.Other["Low Rendering"]) then
+        settings().Rendering.QualityLevel = 1
+        settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level04
+        if _G.SendNotifications then
+            StarterGui:SetCore("SendNotification", {
+                Title = "Kansu",
+                Text = "Low Rendering Enabled",
+                Duration = 0,
+                Button1 = "Okay"
+            })
+        end
+        if _G.ConsoleLogs then
+        end
+    end
+end)
+coroutine.wrap(pcall)(function()
+    if _G.Settings["Reset Materials"] or (_G.Settings.Other and _G.Settings.Other["Reset Materials"]) then
+        for i, v in pairs(MaterialService:GetChildren()) do
+            v:Destroy()
+        end
+        MaterialService.Use2022Materials = false
+        if _G.SendNotifications then
+            StarterGui:SetCore("SendNotification", {
+                Title = "Kansu",
+                Text = "Reset Materials Enabled",
+                Duration = 0,
+                Button1 = "Okay"
+            })
+        end
+        if _G.ConsoleLogs then
+        end
+    end
+end)
+coroutine.wrap(pcall)(function()
+    if _G.Settings["FPS Cap"] or (_G.Settings.Other and _G.Settings.Other["FPS Cap"]) then
+        if setfpscap then
+            if type(_G.Settings["FPS Cap"] or (_G.Settings.Other and _G.Settings.Other["FPS Cap"])) == "string" or type(_G.Settings["FPS Cap"] or (_G.Settings.Other and _G.Settings.Other["FPS Cap"])) == "number" then
+                setfpscap(tonumber(_G.Settings["FPS Cap"] or (_G.Settings.Other and _G.Settings.Other["FPS Cap"])))
+                if _G.SendNotifications then
+                    StarterGui:SetCore("SendNotification", {
+                        Title = "Kansu",
+                        Text = "FPS Capped to " .. tostring(_G.Settings["FPS Cap"] or (_G.Settings.Other and _G.Settings.Other["FPS Cap"])),
+                        Duration = 0,
+                        Button1 = "Okay"
+                    })
+                end
+                if _G.ConsoleLogs then
+                end
+            elseif _G.Settings["FPS Cap"] or (_G.Settings.Other and _G.Settings.Other["FPS Cap"]) == true then
+                setfpscap(1e6)
+                if _G.SendNotifications then
+                    StarterGui:SetCore("SendNotification", {
+                        Title = "Kansu",
+                        Text = "FPS Uncapped",
+                        Duration = 0,
+                        Button1 = "Okay"
+                    })
+                end
+                if _G.ConsoleLogs then
+                end
+            end
+        else
+            StarterGui:SetCore("SendNotification", {
+                Title = "Kansu",
+                Text = "FPS Cap Failed",
+                Duration = math.huge,
+                Button1 = "Okay"
+            })
+        end
+    end
+end)
+game.DescendantAdded:Connect(function(value)
+    wait(_G.LoadedWait or 1)
+    CheckIfBad(value)
+end)
+local Descendants = game:GetDescendants()
+local StartNumber = _G.WaitPerAmount or 500
+local WaitNumber = _G.WaitPerAmount or 500
+if _G.SendNotifications then
+    StarterGui:SetCore("SendNotification", {
+        Title = "Kansu",
+        Text = "Checking " .. #Descendants .. " Instances...",
+        Duration = 0,
+        Button1 = "Okay"
+    })
+end
+if _G.ConsoleLogs then
+end
+for i, v in pairs(Descendants) do
+    CheckIfBad(v)
+    if i == WaitNumber then
+        task.wait()
+        if _G.ConsoleLogs then
+        end
+        WaitNumber = WaitNumber + StartNumber
+    end
+end
+StarterGui:SetCore("SendNotification", {
+    Title = "",
+    Text = "FPS Booster Loaded!",
+    Duration = 5,
+    Button1 = "Okay"
+})
+warn("FPS Booster Loaded!")
+end)
+
+Library.addButton(tab10, "lower cpu load", "", function()
 local decalsyeeted = true
 local g = game
 local w = g.Workspace
@@ -3016,7 +3505,6 @@ Library.addToggle(tab6, "Activate FOV", "", false, function(state)
     config.FOVEnabled = state
     workspace.CurrentCamera.FieldOfView = state and config.FOV or 70
 end)
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -3030,111 +3518,67 @@ getgenv().settings = {
 
 local settings = getgenv().settings
 
-local function updateHumanoid(property, value)
-    local character = plr.Character or plr.CharacterAdded:Wait()
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        humanoid[property] = value
-    end
+local function updateProperty(property, value)
+    local humanoid = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid")
+    if humanoid then humanoid[property] = value end
 end
 
-local function disconnectAllConnections()
-    for key, connection in pairs(settings.connections) do
-        if connection then
-            connection:Disconnect()
-            settings.connections[key] = nil
-        end
-    end
+local function toggleConnection(key, state, event, func)
+    if settings.connections[key] then settings.connections[key]:Disconnect() end
+    settings.connections[key] = state and event:Connect(func) or nil
 end
 
 plr.CharacterAdded:Connect(function()
-    disconnectAllConnections()
+    for _, conn in pairs(settings.connections) do if conn then conn:Disconnect() end end
     task.wait(0.5)
 
-    if settings.speed.loop then
-        settings.connections.speed = RunService.Heartbeat:Connect(function()
-            updateHumanoid("WalkSpeed", settings.speed.value)
-        end)
-    else
-        updateHumanoid("WalkSpeed", settings.speed.value)
-    end
+    updateProperty("WalkSpeed", settings.speed.value)
+    updateProperty("JumpPower", settings.jump.power)
 
-    if settings.jump.loop then
-        settings.connections.jump = RunService.Heartbeat:Connect(function()
-            updateHumanoid("JumpPower", settings.jump.power)
-        end)
-    else
-        updateHumanoid("JumpPower", settings.jump.power)
-    end
+    toggleConnection("speed", settings.speed.loop, RunService.Heartbeat, function()
+        updateProperty("WalkSpeed", settings.speed.value)
+    end)
 
-    if settings.jump.infinite then
-        settings.connections.infinite = UserInputService.JumpRequest:Connect(function()
-            local character = plr.Character or plr.CharacterAdded:Wait()
-            local humanoid = character:FindFirstChildOfClass("Humanoid")
-            if humanoid then humanoid:ChangeState("Jumping") end
-        end)
-    end
+    toggleConnection("jump", settings.jump.loop, RunService.Heartbeat, function()
+        updateProperty("JumpPower", settings.jump.power)
+    end)
+
+    toggleConnection("infinite", settings.jump.infinite, UserInputService.JumpRequest, function()
+        local humanoid = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then humanoid:ChangeState("Jumping") end
+    end)
 end)
 
 Library.addSlider(tab6, "Speed", 0, 100, settings.speed.value, 1, function(value)
     settings.speed.value = value
-    if not settings.speed.loop then
-        updateHumanoid("WalkSpeed", value)
-    end
+    if not settings.speed.loop then updateProperty("WalkSpeed", value) end
 end)
 
 Library.addToggle(tab6, "Loop speed", "bucle de velocidad", false, function(state)
     settings.speed.loop = state
-    if state then
-        if settings.connections.speed then settings.connections.speed:Disconnect() end
-        settings.connections.speed = RunService.Heartbeat:Connect(function()
-            updateHumanoid("WalkSpeed", settings.speed.value)
-        end)
-    else
-        if settings.connections.speed then
-            settings.connections.speed:Disconnect()
-            settings.connections.speed = nil
-        end
-    end
+    toggleConnection("speed", state, RunService.Heartbeat, function()
+        updateProperty("WalkSpeed", settings.speed.value)
+    end)
 end)
 
 Library.addSlider(tab6, "Power Jump", 0, 100, settings.jump.power, 1, function(value)
     settings.jump.power = value
-    if not settings.jump.loop then
-        updateHumanoid("JumpPower", value)
-    end
+    if not settings.jump.loop then updateProperty("JumpPower", value) end
 end)
 
 Library.addToggle(tab6, "Power Jump/Loop", "bucle de poder de salto", false, function(state)
     settings.jump.loop = state
-    if state then
-        if settings.connections.jump then settings.connections.jump:Disconnect() end
-        settings.connections.jump = RunService.Heartbeat:Connect(function()
-            updateHumanoid("JumpPower", settings.jump.power)
-        end)
-    else
-        if settings.connections.jump then
-            settings.connections.jump:Disconnect()
-            settings.connections.jump = nil
-        end
-    end
+    toggleConnection("jump", state, RunService.Heartbeat, function()
+        updateProperty("JumpPower", settings.jump.power)
+    end)
 end)
 
 Library.addToggle(tab6, "Infinite Jump", "salto infinito", false, function(state)
     settings.jump.infinite = state
-    if state then
-        if settings.connections.infinite then settings.connections.infinite:Disconnect() end
-        settings.connections.infinite = UserInputService.JumpRequest:Connect(function()
-            local character = plr.Character or plr.CharacterAdded:Wait()
-            local humanoid = character:FindFirstChildOfClass("Humanoid")
-            if humanoid then humanoid:ChangeState("Jumping") end
-        end)
-    else
-        if settings.connections.infinite then
-            settings.connections.infinite:Disconnect()
-            settings.connections.infinite = nil
-        end
-    end
+    toggleConnection("infinite", state, UserInputService.JumpRequest, function()
+        local humanoid = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then humanoid:ChangeState("Jumping") end
+    end)
 end)
 
 Library.addButton(tab7, "Get all the emotes", "obtener todos los emotes", function()
@@ -3249,6 +3693,20 @@ Library.addButton(tab8, "Anti afk", "", function()
     end)
 end)
 
+local MuteRadiosEnabled = false
+
+Library.addToggle(tab8, "Mute Radios", "", false, function(state)
+    MuteRadiosEnabled = state
+    for _, Player in pairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer then
+            local Sound = Player.Character and Player.Character:FindFirstChild("Radio") and Player.Character.Radio:FindFirstChildOfClass("Sound")
+            if Sound then
+                Sound.Volume = state and 0 or 0.5
+            end
+        end
+    end
+end)
+
 getgenv().player = game.Players.LocalPlayer
 getgenv().guiName = "JumpGui"
 getgenv().gui, getgenv().connections = nil, {}
@@ -3317,20 +3775,20 @@ Library.addButton(tab8, "Server hop", "", function()
     serverHop()
 end)
 
-local GuiService = game:GetService("GuiService")
-local Players = game:GetService("Players")
-local TeleportService = game:GetService("TeleportService")
+getgenv().GuiService = game:GetService("GuiService")
+getgenv().Players = game:GetService("Players")
+getgenv().TeleportService = game:GetService("TeleportService")
 
-local player = Players.LocalPlayer
-local autoRejoin = savedConfig.autorejoin or false
+getgenv().player = Players.LocalPlayer
+getgenv().autoRejoin = getgenv().savedConfig and getgenv().savedConfig.autorejoin or false
 
 local function onErrorMessageChanged(errorMessage)
-    if autoRejoin and errorMessage and errorMessage ~= "" then
+    if getgenv().autoRejoin and errorMessage and errorMessage ~= "" then
         print("Error detected: " .. errorMessage)
 
-        if player then
+        if getgenv().player then
             local scriptContent = [[
-                local scriptToExecute = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sinnombrexd1/symmetrical-octo-goggles12383737373733737733373737363363636363636262627019282827272737337373737738/refs/heads/main/Fuck"))
+                local scriptToExecute = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot1200/M/refs/heads/main/M"))
                 if scriptToExecute then
                     scriptToExecute()
                 end
@@ -3341,15 +3799,19 @@ local function onErrorMessageChanged(errorMessage)
                 QueueTeleport(scriptContent)
             end
 
-            TeleportService:Teleport(game.PlaceId, player)
+            getgenv().TeleportService:Teleport(game.PlaceId, getgenv().player)
         end
     end
 end
 
-GuiService.ErrorMessageChanged:Connect(onErrorMessageChanged)
+getgenv().GuiService.ErrorMessageChanged:Connect(onErrorMessageChanged)
 
-Library.addToggle(tab8, "Auto rejoin", "", savedConfig.autorejoin or false, function(state)
-    savedConfig.autorejoin = state  
-    saveConfig(savedConfig)  
-    autoRejoin = state
+Library.addToggle(tab8, "Auto rejoin", "", getgenv().savedConfig and getgenv().savedConfig.autorejoin or false, function(state)
+    getgenv().savedConfig = getgenv().savedConfig or {}  
+    getgenv().savedConfig.autorejoin = state  
+    saveConfig(getgenv().savedConfig)  
+    getgenv().autoRejoin = state
 end)
+
+setfpscap(math.huge)
+print("Fps unblock ×2")
