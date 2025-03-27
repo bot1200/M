@@ -1,26 +1,10 @@
-repeat task.wait() until game.Players.LocalPlayer.Character
-
-local StarterGui = game:GetService("StarterGui")
-
-local function Notify(Title, Message, Time)
-    StarterGui:SetCore("SendNotification", {
-        Title = Title,
-        Text = Message,
-        Duration = Time or 5
-    })
-end
-
-if _G.capy then
-    return Notify("Already Loaded", "Rejoin to continue.")
-else
-    _G.capy = true
-end
+repeat task.wait() until game.Players.LocalPlayer.Character; local StarterGui = game:GetService("StarterGui"); local function Notify(Title, Message, Time) StarterGui:SetCore("SendNotification", {Title = Title, Text = Message, Duration = Time or 5}) end; if _G.capy then return Notify("Already Loaded", "Rejoin to continue.") else _G.capy = true end
 
 local Players, Workspace, ReplicatedStorage, RunService, Lighting, UIS, ScriptContext, Camera, player, Mouse, Terrain, VirtualUser, LocalPlayer, PlayerScripts, RawMetatable, OldNameCall, UserInputService = game:GetService("Players"), game:GetService("Workspace"), game:GetService("ReplicatedStorage"), game:GetService("RunService"), game:GetService("Lighting"), game:GetService("UserInputService"), game:GetService("ScriptContext"), game:GetService("Workspace").CurrentCamera, game:GetService("Players").LocalPlayer, game:GetService("Players").LocalPlayer:GetMouse(), game:GetService("Workspace").Terrain, game:GetService("VirtualUser"), game:GetService("Players").LocalPlayer, game:GetService("Players").LocalPlayer:FindFirstChildOfClass("PlayerScripts"), getrawmetatable(game), getrawmetatable(game).__namecall, game:GetService("UserInputService")
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot1200/Li/refs/heads/main/Li", true))()
 
-local ui = Library:CreateUI(string.char(77, 117, 114, 100, 101, 114) .. " " .. string.char(77, 121, 115, 116, 101, 114) .. " " .. string.char(50) .. " " .. string.char(47) .. " " .. string.char(54, 53) , string.char(66, 121) .. " " .. string.char(67, 97, 112, 121, 98, 97, 114, 97, 83, 99, 114, 105, 112, 116))
+local ui = Library:CreateUI(string.char(77, 117, 114, 100, 101, 114) .. " " .. string.char(77, 121, 115, 116, 101, 114) .. " " .. string.char(50) .. " " .. string.char(47) .. " " .. string.char(55, 55) , string.char(66, 121) .. " " .. string.char(67, 97, 112, 121, 98, 97, 114, 97, 83, 99, 114, 105, 112, 116))
 
 local tab1, tab2, tab3, tab10, tab4, tab5, tab6, tab7, tab8, tab9 = ui:AddTab("Combat"), ui:AddTab("Hitbox expander"), ui:AddTab("Visual"), ui:AddTab("Optimization"), ui:AddTab("Teleport"), ui:AddTab("Auto Farm"), ui:AddTab("Local Player"), ui:AddTab("Emote"), ui:AddTab("ActMgr"), ui:AddTab("buttons")
 
@@ -45,7 +29,7 @@ end
 
 local savedConfig = loadConfig()
 
-setfpscap(math.huge)
+setfpscap(1000)
 print("Fps unblock")
 
 getgenv().blockPosition = Vector3.new(-74, 6, 693)
@@ -78,7 +62,7 @@ getgenv().VerticalDistanceMultiplier = 0.000001
 getgenv().MaxDistanceForMultiplier = 20
 getgenv().SharpnessMultiplier = 0.5
 
-local KnifeSpeed = 10
+local KnifeSpeed = 7
 
 Library.addToggle(tab1, "Knife Silent Aim", "", false, function(state)
     getgenv().KnifeAimEnabled = state
@@ -96,7 +80,7 @@ Library.addToggle(tab1, "Gun Sharpness Shooter", "Pistola alfialdo", false, func
     getgenv().GunSharpnessEnabled = state
 end)
 
-Library.addDropdown(tab1, "Gun Prediction Type", "Normal", {"Normal", "Dynamic", "Static", "With Ping"}, function(selected)
+Library.addDropdown(tab1, "Gun Prediction Type", "Dynamic", {"Dynamic", "Static", "With Ping"}, function(selected)
     getgenv().PredictionType = selected
 end)
 
@@ -118,7 +102,6 @@ local function GetClosestTarget(isKnifeMode)
                 local Distance = (LocalRoot.Position - TargetRoot.Position).Magnitude
                 if Distance < ClosestDistance then
                     if isKnifeMode then
-                        -- Solo considerar la prioridad si estamos en modo cuchillo
                         if getgenv().KnifeTargetingMode == "Prioritize the Sheriff" and HasItem(Player, "Gun") then
                             ClosestPlayer, ClosestDistance = Player, Distance
                         elseif getgenv().KnifeTargetingMode == "Normal" then
@@ -985,439 +968,442 @@ Library.addToggle(tab3, "See Coins", "Ver monedas", false, function(state)
     end  
 end)
 
-getgenv().Nametag = false  
-getgenv().Cheamesp = false  
-getgenv().TracerEnabled = false  
-getgenv().Highlight = false  
-
-getgenv().ChamTransparency = 0.6
-getgenv().HighlightTransparency = 0.5  
-
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
-
-local Holder = Instance.new("Folder", game.CoreGui)  
-Holder.Name = "ESP"  
-
-local tracerContainer = {}  
-local highlights = {}  
-local rolesCache = {}  
-
-local roleColors = {  
-    Sheriff = Color3.fromRGB(0, 0, 200),  
-    Murderer = Color3.fromRGB(255, 0, 0),  
-    Hero = Color3.fromRGB(255, 255, 0),  
-    None = Color3.fromRGB(0, 140, 0)  
-}  
-
-local outlineColors = {  
-    Sheriff = Color3.fromRGB(0, 0, 255),  
-    Murderer = Color3.fromRGB(139, 0, 0),  
-    Hero = Color3.fromRGB(255, 255, 0),  
-    None = Color3.fromRGB(0, 128, 0)  
-}  
-
-local function CreateNameTag()  
-    local NameTag = Instance.new("BillboardGui")  
-    NameTag.Name = "NameTag"  
-    NameTag.Size = UDim2.new(0, 200, 0, 50)  
-    NameTag.AlwaysOnTop = true  
-    NameTag.StudsOffset = Vector3.new(0, 2.5, 0)  
-    local Tag = Instance.new("TextLabel", NameTag)  
-    Tag.Name = "Tag"  
-    Tag.BackgroundTransparency = 1  
-    Tag.Size = UDim2.new(0, 300, 0, 20)  
-    Tag.TextSize = 14  
-    Tag.Position = UDim2.new(0, -50, 0, 0)  
-    Tag.TextStrokeTransparency = 0  
-    Tag.Font = Enum.Font.SourceSansBold  
-    return NameTag  
-end  
-
-local function LoadCharacter(player)  
-    if not getgenv().Nametag or player == LocalPlayer then return end  
-    local character = player.Character  
-    if not character then return end  
-    local head = character:FindFirstChild("Head")  
-    if not head then return end  
-    local vHolder = Holder:FindFirstChild(player.Name) or Instance.new("Folder", Holder)  
-    vHolder.Name = player.Name  
-    local nametag = vHolder:FindFirstChild("NameTag") or CreateNameTag()  
-    nametag.Parent = vHolder  
-    nametag.Adornee = head  
-    nametag.Enabled = true  
-    nametag.Tag.Text = player.Name  
-    nametag.Tag.TextColor3 = roleColors.None  
-end  
-
-local function UnloadCharacter(player)  
-    local vHolder = Holder:FindFirstChild(player.Name)  
-    if vHolder then vHolder:Destroy() end  
-end  
-
-local function applyAdornmentsWithDelay(character)  
-    if not character or not getgenv().Cheamesp then return end  
-    for _, part in pairs(character:GetChildren()) do  
-        if part:IsA("BasePart") then  
-            task.delay(0.1, function()  
-                local adornment = part:FindFirstChild("espAdornment")  
-                if not adornment then  
-                    adornment = Instance.new("BoxHandleAdornment")  
-                    adornment.Name = "espAdornment"  
-                    adornment.Size = part.Size  
-                    adornment.Adornee = part  
-                    adornment.AlwaysOnTop = true  
-                    adornment.ZIndex = 5  
-                    adornment.Color = Color3.fromRGB(0, 140, 0)
-                    adornment.Transparency = getgenv().ChamTransparency  
-                    adornment.Parent = part  
-                end  
-            end)  
-        end  
-    end  
-end  
-
-local function ManagePlayer(player)  
-    if player == LocalPlayer then return end  
-    player.CharacterAdded:Connect(function(character)
-    character:WaitForChild("Head")
-    LoadCharacter(player)
-    applyAdornmentsWithDelay(character)
-    if getgenv().Highlight then
-        local highlight = Instance.new("Highlight")
-        highlight.Name = "ESP_Highlight"
-        highlight.FillTransparency = getgenv().HighlightTransparency
-        highlight.OutlineTransparency = 0
-        highlight.Parent = character
-        highlights[player] = highlight
+getgenv().ChamESP = false
+getgenv().ChamTransparency = 0.8
+getgenv().E = false
+getgenv().H = false
+getgenv().T = false
+getgenv().eB = false
+getgenv().F = 0.8
+getgenv().Roles = {}
+local function updateRoles()
+    local success, data = pcall(function() return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer() end)
+    if success and data then
+        getgenv().Roles = data
     end
-end)
-    player.CharacterRemoving:Connect(function()  
-        UnloadCharacter(player)  
-        if highlights[player] then  
-            highlights[player]:Destroy()  
-            highlights[player] = nil  
-        end  
-    end)  
-    if player.Character then  
-        LoadCharacter(player)  
-        applyAdornmentsWithDelay(player.Character)  
-    end  
-end  
-
-for _, player in pairs(Players:GetPlayers()) do  
-    ManagePlayer(player)  
-end  
-
-Players.PlayerAdded:Connect(ManagePlayer)  
-Players.PlayerRemoving:Connect(function(player)  
-    UnloadCharacter(player)  
-    if tracerContainer[player] then  
-        tracerContainer[player]:Remove()  
-        tracerContainer[player] = nil  
-    end  
-    if highlights[player] then  
-        highlights[player]:Destroy()  
-        highlights[player] = nil  
-    end  
-end)  
-
-local function UpdateRoles()  
-    local success, roles = pcall(function()  
-        return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()  
-    end)  
-    if not success or not roles then return {} end  
-    rolesCache = {}  
-    for playerName, data in pairs(roles) do  
-        rolesCache[playerName] = data.Role  
-    end  
-    return rolesCache  
-end  
-
-local function UpdateLabels()  
-    for _, player in pairs(Players:GetPlayers()) do  
-        local vHolder = Holder:FindFirstChild(player.Name)
-        local nametag = vHolder and vHolder:FindFirstChild("NameTag")
-        if nametag then  
-            local role = rolesCache[player.Name] or "None"  
-            nametag.Tag.TextColor3 = roleColors[role] or roleColors.None  
-        end  
-    end  
-end  
-
-local function applyRoleColor(character, role)  
-    if not character or not getgenv().Cheamesp then return end  
-    local color = roleColors[role] or roleColors.None  
-    for _, part in pairs(character:GetChildren()) do  
-        if part:IsA("BasePart") then  
-            local adornment = part:FindFirstChild("espAdornment")  
-            if not adornment then  
-                adornment = Instance.new("BoxHandleAdornment")  
-                adornment.Name = "espAdornment"  
-                adornment.Size = part.Size  
-                adornment.Adornee = part  
-                adornment.AlwaysOnTop = true  
-                adornment.ZIndex = 5  
-                adornment.Transparency = getgenv().ChamTransparency  
-                adornment.Parent = part  
-            else
-                adornment.Transparency = getgenv().ChamTransparency  
-            end
-            adornment.Color3 = color  
-        end  
-    end  
-end  
-
-local function removeESP(character)  
-    if not character then return end  
-    for _, part in pairs(character:GetChildren()) do  
-        if part:IsA("BasePart") then  
-            local adornment = part:FindFirstChild("espAdornment")  
-            if adornment then adornment:Destroy() end  
-        end  
-    end  
-end  
-
-local function drawTracerLines()  
-    if not getgenv().TracerEnabled then
-        for _, tracer in pairs(tracerContainer) do
-            tracer:Remove()
+end
+local function IsAlive(player)
+    local roleData = getgenv().Roles[player.Name]
+    return roleData and not roleData.Killed and not roleData.Dead
+end
+local function getRoleColor(player)
+    local roleData = getgenv().Roles[player.Name]
+    if roleData and IsAlive(player) then
+        local role = roleData.Role
+        if role == "Innocent" then
+            return Color3.fromRGB(0, 128, 0)
+        elseif role == "Sheriff" then
+            return Color3.fromRGB(0, 0, 255)
+        elseif role == "Hero" then
+            return Color3.fromRGB(255, 255, 0)
+        elseif role == "Murderer" then
+            return Color3.fromRGB(255, 0, 0)
         end
-        tracerContainer = {}
+    end
+    return Color3.fromRGB(169, 169, 169)
+end
+local chamUpdateLoop, chamCleanupLoop
+local function applyChamESP(player, color)
+    if not getgenv().ChamESP then return end
+    local character = player.Character
+    if character then
+        for _, part in pairs(character:GetChildren()) do
+            if part:IsA("BasePart") then
+                local adornment = part:FindFirstChild("espAdornment")
+                if not adornment then
+                    adornment = Instance.new("BoxHandleAdornment")
+                    adornment.Name = "espAdornment"
+                    adornment.Size = part.Size
+                    adornment.Adornee = part
+                    adornment.AlwaysOnTop = true
+                    adornment.ZIndex = 5
+                    adornment.Parent = part
+                end
+                adornment.Color3 = color
+                adornment.Transparency = getgenv().ChamTransparency
+            end
+        end
+    end
+end
+local function clearChamESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        local character = player.Character
+        if character then
+            for _, part in pairs(character:GetChildren()) do
+                local adornment = part:FindFirstChild("espAdornment")
+                if adornment then
+                    adornment:Destroy()
+                end
+            end
+        end
+    end
+end
+local function startChamESP()
+    if chamUpdateLoop or chamCleanupLoop then return end
+    chamUpdateLoop = task.spawn(function()
+        while getgenv().ChamESP do
+            updateRoles()
+            for _, player in pairs(Players:GetPlayers()) do
+                if player == LocalPlayer then continue end
+                local color = getRoleColor(player)
+                applyChamESP(player, color)
+            end
+            task.wait(1)
+        end
+    end)
+    chamCleanupLoop = task.spawn(function()
+        while getgenv().ChamESP do
+            for _, player in pairs(Players:GetPlayers()) do
+                if player == LocalPlayer then continue end
+                if not IsAlive(player) then
+                    applyChamESP(player, Color3.fromRGB(169, 169, 169))
+                end
+            end
+            task.wait(1)
+        end
+    end)
+end
+local function stopChamESP()
+    getgenv().ChamESP = false
+    if chamUpdateLoop then
+        task.cancel(chamUpdateLoop)
+        chamUpdateLoop = nil
+    end
+    if chamCleanupLoop then
+        task.cancel(chamCleanupLoop)
+        chamCleanupLoop = nil
+    end
+    clearChamESP()
+end
+local espNameUpdateLoop, espNameCleanupLoop
+local function applyESPName(player, color)
+    if not getgenv().E then return end
+    local character = player.Character
+    if character then
+        local head = character:FindFirstChild("Head")
+        if head then
+            local gui = head:FindFirstChild("BillboardGui")
+            if not gui then
+                gui = Instance.new("BillboardGui")
+                gui.Parent = head
+                gui.Adornee = head
+                gui.Size = UDim2.new(0, 100, 0, 30)
+                gui.StudsOffset = Vector3.new(0, 2, 0)
+                gui.AlwaysOnTop = true
+                gui.ResetOnSpawn = false
+                gui.Enabled = true
+                local textLabel = Instance.new("TextLabel")
+                textLabel.Parent = gui
+                textLabel.Size = UDim2.new(1, 0, 1, 0)
+                textLabel.BackgroundTransparency = 1
+                textLabel.TextScaled = true
+                textLabel.TextColor3 = color
+                textLabel.Text = player.Name
+                textLabel.TextSize = 10
+            else
+                gui.TextLabel.TextColor3 = color
+                gui.TextLabel.TextSize = 10
+            end
+        end
+    end
+end
+local function clearESPName()
+    for _, player in pairs(Players:GetPlayers()) do
+        local character = player.Character
+        if character then
+            local head = character:FindFirstChild("Head")
+            if head then
+                local gui = head:FindFirstChild("BillboardGui")
+                if gui then
+                    gui:Destroy()
+                end
+            end
+        end
+    end
+end
+local function startESPName()
+    if espNameUpdateLoop or espNameCleanupLoop then return end
+    espNameUpdateLoop = task.spawn(function()
+        while getgenv().E do
+            updateRoles()
+            for _, player in pairs(Players:GetPlayers()) do
+                if player == LocalPlayer then continue end
+                local color = getRoleColor(player)
+                applyESPName(player, color)
+            end
+            task.wait(1)
+        end
+    end)
+    espNameCleanupLoop = task.spawn(function()
+        while getgenv().E do
+            for _, player in pairs(Players:GetPlayers()) do
+                if player == LocalPlayer then continue end
+                if not IsAlive(player) then
+                    applyESPName(player, Color3.fromRGB(169, 169, 169))
+                end
+            end
+            task.wait(1)
+        end
+    end)
+end
+local function stopESPName()
+    getgenv().E = false
+    if espNameUpdateLoop then
+        task.cancel(espNameUpdateLoop)
+        espNameUpdateLoop = nil
+    end
+    if espNameCleanupLoop then
+        task.cancel(espNameCleanupLoop)
+        espNameCleanupLoop = nil
+    end
+    clearESPName()
+end
+local highlightUpdateLoop, highlightCleanupLoop
+local function applyHighlight(player, fillColor, outlineColor)
+    if not getgenv().H then return end
+    local character = player.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local highlight = character:FindFirstChild("Highlight")
+        if not highlight then
+            highlight = Instance.new("Highlight")
+            highlight.Parent = character
+        end
+        highlight.FillColor = fillColor
+        highlight.FillTransparency = getgenv().F
+        highlight.OutlineColor = outlineColor
+    end
+end
+local function clearHighlight()
+    for _, player in pairs(Players:GetPlayers()) do
+        local character = player.Character
+        if character then
+            local highlight = character:FindFirstChild("Highlight")
+            if highlight then
+                highlight:Destroy()
+            end
+        end
+    end
+end
+local function startESPHighlight()
+    if highlightUpdateLoop or highlightCleanupLoop then return end
+    highlightUpdateLoop = task.spawn(function()
+        while getgenv().H do
+            updateRoles()
+            for _, player in pairs(Players:GetPlayers()) do
+                if player == LocalPlayer then continue end
+                local color = getRoleColor(player)
+                applyHighlight(player, color, color)
+            end
+            task.wait(1)
+        end
+    end)
+    highlightCleanupLoop = task.spawn(function()
+        while getgenv().H do
+            for _, player in pairs(Players:GetPlayers()) do
+                if player == LocalPlayer then continue end
+                if not IsAlive(player) then
+                    applyHighlight(player, Color3.fromRGB(169, 169, 169), Color3.fromRGB(169, 169, 169))
+                end
+            end
+            task.wait(1)
+        end
+    end)
+end
+local function stopESPHighlight()
+    getgenv().H = false
+    if highlightUpdateLoop then
+        task.cancel(highlightUpdateLoop)
+        highlightUpdateLoop = nil
+    end
+    if highlightCleanupLoop then
+        task.cancel(highlightCleanupLoop)
+        highlightCleanupLoop = nil
+    end
+    clearHighlight()
+end
+local tracerDrawings = {}
+RunService.RenderStepped:Connect(function()
+    if not getgenv().T then
+        for _, line in pairs(tracerDrawings) do
+            line.Visible = false
+        end
         return
     end
-    local camera = workspace.CurrentCamera  
-    for _, player in pairs(Players:GetPlayers()) do  
-        if player ~= LocalPlayer and player.Character then  
-            local rootPart = player.Character:FindFirstChild("HumanoidRootPart")  
-            local humanoid = player.Character:FindFirstChild("Humanoid")  
-            if rootPart and humanoid and humanoid.Health > 0 then  
-                local screenPos, onScreen = camera:WorldToViewportPoint(rootPart.Position)  
-                if onScreen then  
-                    local role = rolesCache[player.Name] or "None"  
-                    local tracer = tracerContainer[player] or Drawing.new("Line")  
-                    tracer.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)  
-                    tracer.To = Vector2.new(screenPos.X, screenPos.Y)  
-                    tracer.Thickness = 1
-                    tracer.Color = roleColors[role] or roleColors.None  
-                    tracer.Visible = true  
-                    tracerContainer[player] = tracer  
-                else  
-                    if tracerContainer[player] then  
-                        tracerContainer[player].Visible = false  
-                    end  
-                end  
-            elseif tracerContainer[player] then  
-                tracerContainer[player]:Remove()  
-                tracerContainer[player] = nil  
-            end  
-        end  
-    end  
-end  
-
-task.spawn(function()
-    while true do
-        task.wait(1)
-        if (getgenv().Nametag or getgenv().Cheamesp or getgenv().Highlight) then
-            UpdateRoles()
-            if getgenv().Nametag then
-                UpdateLabels()
-            end
-            if getgenv().Cheamesp then
-                for _, player in pairs(Players:GetPlayers()) do
-                    if player ~= LocalPlayer and player.Character then
-                        local role = rolesCache[player.Name] or "None"
-                        applyRoleColor(player.Character, role)
-                    end
-                end
-            end
-            if getgenv().Highlight then
-                for player, highlight in pairs(highlights) do
-                    if player.Character then
-                        local role = rolesCache[player.Name] or "None"
-                        highlight.FillColor = roleColors[role] or roleColors.None
-                        highlight.OutlineColor = outlineColors[role] or outlineColors.None
-                    end
-                end
-            end
-        end
-    end
-end)
-
-game:GetService("RunService").RenderStepped:Connect(function()
-    if getgenv().TracerEnabled then
-        drawTracerLines()
-    end
-end)
-
-Library.addLabel(tab3, "ESP Players")
-
-Library.addToggle(tab3, "ESP Name", "ESP Nombre", false, function(state)
-    getgenv().Nametag = state
+    local camera = workspace.CurrentCamera
+    local cx = camera.ViewportSize.X / 2
+    local cy = camera.ViewportSize.Y
     for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            if state then 
-                LoadCharacter(player) 
-            else 
-                UnloadCharacter(player) 
-            end
-        end
-    end
-end)
-
-Library.addToggle(tab3, "ESP Cham", "", false, function(state)
-    getgenv().Cheamesp = state
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            if state then
-                local role = rolesCache[player.Name] or "None"
-                applyRoleColor(player.Character, role)
+        if player == LocalPlayer or not player.Character then continue end
+        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+        local humanoid = player.Character:FindFirstChild("Humanoid")
+        if hrp and humanoid and humanoid.Health > 0 then
+            local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+            if onScreen then
+                local line = tracerDrawings[player]
+                if not line then
+                    line = Drawing.new("Line")
+                    tracerDrawings[player] = line
+                    line.Thickness = 1
+                end
+                line.From = Vector2.new(cx, cy)
+                line.To = Vector2.new(screenPos.X, screenPos.Y)
+                line.Color = getRoleColor(player)
+                line.Visible = true
             else
-                removeESP(player.Character)
+                if tracerDrawings[player] then
+                    tracerDrawings[player].Visible = false
+                end
             end
+        elseif tracerDrawings[player] then
+            tracerDrawings[player]:Remove()
+            tracerDrawings[player] = nil
         end
     end
 end)
-
+Players.PlayerRemoving:Connect(function(player)
+    if tracerDrawings[player] then
+        tracerDrawings[player]:Remove()
+        tracerDrawings[player] = nil
+    end
+end)
+local function drawESPBox(player)
+    if player == LocalPlayer then return end
+    local box = Drawing.new("Square")
+    box.Visible = false
+    box.Thickness = 1
+    box.Filled = false
+    local function updateBox()
+        RunService.RenderStepped:Connect(function()
+            if not getgenv().eB or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+                box.Visible = false
+                return
+            end
+            local camera = workspace.CurrentCamera
+            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+            local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+            if onScreen then
+                box.Size = Vector2.new(1000 / screenPos.Z, 1500 / screenPos.Z)
+                box.Position = Vector2.new(screenPos.X - box.Size.X / 2, screenPos.Y - box.Size.Y / 2)
+                box.Color = getRoleColor(player)
+                box.Visible = true
+            else
+                box.Visible = false
+            end
+        end)
+    end
+    coroutine.wrap(updateBox)()
+end
+for _, player in pairs(Players:GetPlayers()) do
+    drawESPBox(player)
+end
+Players.PlayerAdded:Connect(function(player)
+    drawESPBox(player)
+end)
+Library.addToggle(tab3, "ESP Box", "", false, function(state)
+    getgenv().eB = state
+end)
 Library.addToggle(tab3, "ESP Tracer", "", false, function(state)
-    getgenv().TracerEnabled = state
+    getgenv().T = state
     if not state then
-        for _, tracer in pairs(tracerContainer) do
-            tracer:Remove()
+        for _, line in pairs(tracerDrawings) do
+            line:Remove()
         end
-        tracerContainer = {}
+        tracerDrawings = {}
     end
 end)
-
-Library.addToggle(tab3, "ESP Highlight", "ESP Rezaltado", false, function(state)
-    getgenv().Highlight = state
+Library.addToggle(tab3, "Cham ESP", "", false, function(state)
+    getgenv().ChamESP = state
     if state then
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character then
-                local highlight = Instance.new("Highlight")
-                highlight.Name = "ESP_Highlight"
-                highlight.FillTransparency = getgenv().HighlightTransparency
-                highlight.OutlineTransparency = 0
-                highlight.Parent = player.Character
-                highlights[player] = highlight
-            end
-        end
+        startChamESP()
     else
-        for player, highlight in pairs(highlights) do
-            highlight:Destroy()
-            highlights[player] = nil
-        end
+        stopChamESP()
     end
 end)
-
-Library.addSlider(tab3, "Esp transparency", 0, 100, 80, 1, function(value)
-    local highlightTransparency = value / 100
-    local chamTransparency = math.min(value / 100, 0.9)
-    getgenv().HighlightTransparency = highlightTransparency
-    getgenv().ChamTransparency = chamTransparency
-
-    for player, highlight in pairs(highlights) do
-        if highlight then
-            highlight.FillTransparency = highlightTransparency
-        end
+Library.addSlider(tab3, "Cham ESP Transparency", 0, 100, 80, 1, function(value)
+    getgenv().ChamTransparency = value / 100
+end)
+Library.addToggle(tab3, "ESP Name", "", false, function(state)
+    getgenv().E = state
+    if state then
+        startESPName()
+    else
+        stopESPName()
     end
-
-    for _, player in pairs(Players:GetPlayers()) do
-        if player.Character then
-            for _, part in pairs(player.Character:GetChildren()) do
-                if part:IsA("BasePart") then
-                    local adornment = part:FindFirstChild("espAdornment")
-                    if adornment then
-                        adornment.Transparency = chamTransparency
-                    end
+end)
+Library.addToggle(tab3, "ESP Highlight", "", false, function(state)
+    getgenv().H = state
+    if state then
+        startESPHighlight()
+    else
+        stopESPHighlight()
+    end
+end)
+Library.addSlider(tab3, "ESP Highlight Transparency", 0, 100, 80, 1, function(value)
+    getgenv().F = value / 100
+end)
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        if not getgenv().E then
+            local head = character:FindFirstChild("Head")
+            if head then
+                local gui = head:FindFirstChild("BillboardGui")
+                if gui then
+                    gui:Destroy()
                 end
             end
         end
-    end
+    end)
 end)
 
-getgenv().ReplicatedStorage = game:GetService("ReplicatedStorage")
-getgenv().StarterGui = game:GetService("StarterGui")
-getgenv().Players = game:GetService("Players")
+getgenv().ReplicatedStorage, getgenv().StarterGui, getgenv().Players, getgenv().toggleNotifications, getgenv().notificationsSent, lastRoles = game:GetService("ReplicatedStorage"), game:GetService("StarterGui"), game:GetService("Players"), false, { Murderer = false, Sheriff = false }, {}
 
-getgenv().toggleNotifications = false  
-getgenv().notificationsSent = { Murderer = false, Sheriff = false }
-local localPlayer = Players.LocalPlayer
+local localPlayer, searching = getgenv().Players.LocalPlayer, false
 
 local function sendNotification(player, role)
     if not getgenv().toggleNotifications then return end
-    local thumb = ""
-    local playerObj = Players:FindFirstChild(player)
-    
-    if playerObj then
-        thumb = Players:GetUserThumbnailAsync(playerObj.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
-    end
-
-    StarterGui:SetCore("SendNotification", {
-        Title = "Player Detected",
-        Text = player .. " is " .. role,
-        Icon = thumb,
-        Duration = 5
-    })
-    
-    getgenv().notificationsSent[role] = true
+    local playerObj, thumb = getgenv().Players:FindFirstChild(player), ""
+    if playerObj then thumb = getgenv().Players:GetUserThumbnailAsync(playerObj.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100) end
+    getgenv().StarterGui:SetCore("SendNotification", { Title = "Player Detected", Text = player .. " is " .. role, Icon = thumb, Duration = 5 })
+    getgenv().notificationsSent[role], lastRoles[player] = true, role
 end
 
 local function getRoles()
     if not getgenv().toggleNotifications then return end
-
-    local success, roles = pcall(function()
-        return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-    end)
-
+    local success, roles = pcall(function() return getgenv().ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer() end)
     if not success or not roles then return end
-
     local murderFound, sheriffFound = false, false
-
     for player, info in pairs(roles) do
-        if info.Role == "Murderer" then
-            murderFound = true
-            if not getgenv().notificationsSent.Murderer then
-                sendNotification(player, "Murderer")
-            end
-        elseif info.Role == "Sheriff" then
-            sheriffFound = true
-            if not getgenv().notificationsSent.Sheriff then
-                sendNotification(player, "Sheriff")
-            end
-        end
+        if info.Role == "Murderer" then murderFound = true if not getgenv().notificationsSent.Murderer and lastRoles[player] ~= "Murderer" then sendNotification(player, "Murderer") end
+        elseif info.Role == "Sheriff" then sheriffFound = true if not getgenv().notificationsSent.Sheriff and lastRoles[player] ~= "Sheriff" then sendNotification(player, "Sheriff") end end
     end
-
-    if not murderFound then
-        getgenv().notificationsSent.Murderer = false
-    end
-
-    if not sheriffFound then
-        getgenv().notificationsSent.Sheriff = false
-    end
+    if not murderFound then getgenv().notificationsSent.Murderer = false end
+    if not sheriffFound then getgenv().notificationsSent.Sheriff = false end
 end
 
 local function startSearching()
-    while true do
-        if getgenv().toggleNotifications and localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") then
-            getRoles()
-        end
+    if searching then return end
+    searching = true
+    while getgenv().toggleNotifications do
+        if localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") and localPlayer.Character.Humanoid.Health > 0 then getRoles() end
         wait(2)
     end
+    searching = false
 end
 
 localPlayer.CharacterAdded:Connect(function()
     wait(1)
-    getgenv().notificationsSent.Murderer = false
-    getgenv().notificationsSent.Sheriff = false
+    if localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") then
+        localPlayer.Character.Humanoid.Died:Connect(function() end)
+    end
 end)
-
-task.spawn(startSearching)
 
 Library.addToggle(tab3, "Role Notification", "notificación de roles", false, function(state)
     getgenv().toggleNotifications = state
+    if state then task.spawn(startSearching) else getgenv().notificationsSent, lastRoles = { Murderer = false, Sheriff = false }, {} end
 end)
 
 Library.addLabel(tab3, "Gun Stuff")
@@ -1910,7 +1896,7 @@ local function useBomb()
         char:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
         game.Players.LocalPlayer.Character.Humanoid.JumpPower = 53
         bomb.Remote:FireServer(char.HumanoidRootPart.CFrame * CFrame.new(0, -3, 0), 50)
-        wait(0.3)
+        task.wait(0.3)
         bomb.Parent = backpack
         game.Players.LocalPlayer.Character.Humanoid.JumpPower = 51
     end
@@ -1919,7 +1905,7 @@ local function useBomb()
     while time() - start < cooldown do
         if player.Character ~= currentChar then reset() return end
         btn.Text = string.format("Cooldown: %ds", cooldown - math.floor(time() - start))
-        wait(0.1)
+        task.wait(0.1)
     end
 
     reset()
@@ -1940,149 +1926,6 @@ end)
 
 Library.addButton(tab4, "Fling sheriff", "", function()
     loadstring(game:HttpGet("https://pastebin.com/raw/Lx8UkvVv"))()
-end)
-
-local targetName = ""
-
-Library.addTextbox(tab4, "Fling Players", "Name", "", function(inputText)
-    targetName = inputText
-end)
-
-Library.addButton(tab4, "Fling player", "", function()
-    if targetName and targetName ~= "" then
-        local Players = game:GetService("Players")
-        local Player = Players.LocalPlayer
-
-        local function GetPlayer(Name)
-            Name = Name:lower()
-            for _, x in next, Players:GetPlayers() do
-                if x ~= Player then
-                    if x.Name:lower():match("^" .. Name) or x.DisplayName:lower():match("^" .. Name) then
-                        return x
-                    end
-                end
-            end
-            return nil
-        end
-
-        local function capy(TargetPlayer)
-            local Character = Player.Character
-            local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
-            local RootPart = Humanoid and Humanoid.RootPart
-
-            local TCharacter = TargetPlayer.Character
-            local THumanoid = TCharacter and TCharacter:FindFirstChildOfClass("Humanoid")
-            local TRootPart = THumanoid and THumanoid.RootPart
-            local THead = TCharacter and TCharacter:FindFirstChild("Head")
-            local Accessory = TCharacter and TCharacter:FindFirstChildOfClass("Accessory")
-            local Handle = Accessory and Accessory:FindFirstChild("Handle")
-
-            if Character and Humanoid and RootPart then
-                if RootPart.Velocity.Magnitude < 50 then
-                    getgenv().OldPos = RootPart.CFrame
-                end
-                if THumanoid and THumanoid.Sit then
-                    return Message("Error Occurred", "Target is sitting", 5)
-                end
-                if THead then
-                    workspace.CurrentCamera.CameraSubject = THead
-                elseif Handle then
-                    workspace.CurrentCamera.CameraSubject = Handle
-                else
-                    workspace.CurrentCamera.CameraSubject = THumanoid
-                end
-                if not TCharacter:FindFirstChildWhichIsA("BasePart") then
-                    return
-                end
-                
-                local function FPos(BasePart, Pos, Ang)
-                    RootPart.CFrame = CFrame.new(BasePart.Position) * Pos * Ang
-                    Character:SetPrimaryPartCFrame(CFrame.new(BasePart.Position) * Pos * Ang)
-                    RootPart.Velocity = Vector3.new(9e7, 9e7 * 10, 9e7)
-                    RootPart.RotVelocity = Vector3.new(9e8, 9e8, 9e8)
-                end
-                
-                local function SFBasePart(BasePart)
-                    local TimeToWait = 2
-                    local Time = tick()
-                    local Angle = 0
-
-                    repeat
-                        if RootPart and THumanoid then
-                            if BasePart.Velocity.Magnitude < 50 then
-                                Angle = Angle + 100
-                                FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
-                                task.wait()
-                                FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
-                                task.wait()
-                            else
-                                FPos(BasePart, CFrame.new(0, 1.5, THumanoid.WalkSpeed), CFrame.Angles(math.rad(90), 0, 0))
-                                task.wait()
-                                FPos(BasePart, CFrame.new(0, -1.5, -THumanoid.WalkSpeed), CFrame.Angles(0, 0, 0))
-                                task.wait()
-                            end
-                        else
-                            break
-                        end
-                    until BasePart.Velocity.Magnitude > 500 or BasePart.Parent ~= TargetPlayer.Character or TargetPlayer.Parent ~= Players or not TargetPlayer.Character == TCharacter or THumanoid.Sit or Humanoid.Health <= 0 or tick() > Time + TimeToWait
-                end
-                
-                workspace.FallenPartsDestroyHeight = 0/0
-                
-                local BV = Instance.new("BodyVelocity")
-                BV.Name = "EpixVel"
-                BV.Parent = RootPart
-                BV.Velocity = Vector3.new(9e8, 9e8, 9e8)
-                BV.MaxForce = Vector3.new(1/0, 1/0, 1/0)
-                
-                Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-                
-                if TRootPart and THead then
-                    if (TRootPart.CFrame.p - THead.CFrame.p).Magnitude > 5 then
-                        SFBasePart(THead)
-                    else
-                        SFBasePart(TRootPart)
-                    end
-                elseif TRootPart and not THead then
-                    SFBasePart(TRootPart)
-                elseif not TRootPart and THead then
-                    SFBasePart(THead)
-                elseif not TRootPart and not THead and Accessory and Handle then
-                    SFBasePart(Handle)
-                else
-                    return Message("Error Occurred", "Target is missing everything", 5)
-                end
-                
-                BV:Destroy()
-                Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
-                workspace.CurrentCamera.CameraSubject = Humanoid
-                
-                repeat
-                    RootPart.CFrame = getgenv().OldPos * CFrame.new(0, .5, 0)
-                    Character:SetPrimaryPartCFrame(getgenv().OldPos * CFrame.new(0, .5, 0))
-                    Humanoid:ChangeState("GettingUp")
-                    table.foreach(Character:GetChildren(), function(_, x)
-                        if x:IsA("BasePart") then
-                            x.Velocity, x.RotVelocity = Vector3.new(), Vector3.new()
-                        end
-                    end)
-                    task.wait()
-                until (RootPart.Position - getgenv().OldPos.p).Magnitude < 25
-                workspace.FallenPartsDestroyHeight = getgenv().FPDH
-            else
-                return Message("Error Occurred", "Random error", 5)
-            end
-        end
-
-        local targetPlayer = GetPlayer(targetName)
-        if targetPlayer then
-            capy(targetPlayer)
-        else
-            Message("Error Occurred", "Invalid username", 5)
-        end
-    else
-        Message("Error Occurred", "Enter a valid player name", 5)
-    end
 end)
 
 Library.addLabel(tab4, "Gun stuff")
@@ -2140,11 +1983,7 @@ Library.addDropdown(tab4, "GunDrop tp/tween", "Choose an action", {"Teleport to 
     end
 end)
 
-local player = game.Players.LocalPlayer
-local coreGui = game:GetService("CoreGui")
-local autoGrabThread
-local auraThread
-local viewThread
+getgenv().player, getgenv().coreGui, getgenv().autoGrabThread, getgenv().auraThread, getgenv().viewThread = game.Players.LocalPlayer, game:GetService("CoreGui")
 
 Library.addToggle(tab4, "Bring Gun/(button)", "", false, function(state)
     local existingGui = coreGui:FindFirstChild("TPGUN")
@@ -2261,7 +2100,7 @@ Library.addButton(tab4, "it Make you invisible", "Te hace invisible", function()
     loadstring(game:HttpGet('https://pastebin.com/raw/GgYsFfDK'))()
 end)
 
-local p = game.Players.LocalPlayer
+getgenv().p = game.Players.LocalPlayer
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "TeleportGui"
@@ -2285,8 +2124,8 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 15)
 corner.Parent = btn
 
-local lastPos
-local toggleOn = false
+getgenv().lastPos = nil
+getgenv().toggleOn = false
 
 local function recordPos()
     if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
@@ -2312,11 +2151,7 @@ end
 
 Library.addToggle(tab4, "tp at the Last Death", "teletrasnporte ala última posición de la muerte", false, function(state)
     toggleOn = state
-    if state then
-        btn.Visible = true
-    else
-        btn.Visible = false
-    end
+    btn.Visible = state
 end)
 
 btn.MouseButton1Click:Connect(function()
@@ -2372,7 +2207,7 @@ Library.addDropdown(tab4, "Teleport to", "role", {"Sheriff", "Murderer", "Hero"}
     TeleportToRole(selectedRole)
 end)
 
-Library.addLabel(tab10, "Optimization")
+Library.addLabel(tab10, "Optimization (maybe more lag than normal)")
 
 getgenv().antiLag = false
 getgenv().removeRaggy = false
@@ -2562,369 +2397,7 @@ Library.addToggle(tab10, "Less lag optimization", "menos lag", false, function(s
 end)
 
 Library.addButton(tab10, "Fps Booster (maybe more lag than normal)", "fps refuerzo (talvez de más lag de lo normal)", function()
-    if not _G.Ignore then
-    _G.Ignore = {} -- Add Instances to this table to ignore them (e.g. _G.Ignore = {workspace.Map, workspace.Map2})
-end
-if not _G.WaitPerAmount then
-    _G.WaitPerAmount = 7000 -- Set Higher or Lower depending on your computer's performance
-end
-if _G.SendNotifications == nil then
-    _G.SendNotifications = false -- Set to false if you don't want notifications
-end
-if _G.ConsoleLogs == nil then
-    _G.ConsoleLogs = false -- Set to true if you want console logs (mainly for debugging)
-end
-
-if not game:IsLoaded() then
-    repeat
-        task.wait()
-    until game:IsLoaded()
-end
-if not _G.Settings then
-    _G.Settings = {
-        Players = {
-            ["Ignore Me"] = true,
-            ["Ignore Others"] = true,
-            ["Ignore Tools"] = true
-        },
-        Meshes = {
-            NoMesh = false,
-            NoTexture = false,
-            Destroy = false
-        },
-        Images = {
-            Invisible = true,
-            Destroy = true
-        },
-        Explosions = {
-            Smaller = true,
-            Invisible = true, -- Not recommended for PVP games
-            Destroy = true -- Not recommended for PVP games
-        },
-        Particles = {
-            Invisible = true,
-            Destroy = false
-        },
-        TextLabels = {
-            LowerQuality = false,
-            Invisible = false,
-            Destroy = false
-        },
-        MeshParts = {
-            LowerQuality = true,
-            Invisible = false,
-            NoTexture = false,
-            NoMesh = false,
-            Destroy = false
-        },
-        Other = {
-            ["FPS Cap"] = 240, -- Set this true to uncap FPS
-            ["No Camera Effects"] = true,
-            ["No Clothes"] = true,
-            ["Low Water Graphics"] = true,
-            ["No Shadows"] = true,
-            ["Low Rendering"] = true,
-            ["Low Quality Parts"] = true,
-            ["Low Quality Models"] = true,
-            ["Reset Materials"] = true,
-            ["Lower Quality MeshParts"] = true
-        }
-    }
-end
-game:GetService("Lighting").Brightness = 0.5
-local Players, Lighting, StarterGui, MaterialService = game:GetService("Players"), game:GetService("Lighting"), game:GetService("StarterGui"), game:GetService("MaterialService")
-local ME, CanBeEnabled = Players.LocalPlayer, {"ParticleEmitter", "Trail", "Smoke", "Fire", "Sparkles"}
-local function PartOfCharacter(Instance)
-    for i, v in pairs(Players:GetPlayers()) do
-        if v ~= ME and v.Character and Instance:IsDescendantOf(v.Character) then
-            return true
-        end
-    end
-    return false
-end
-local function DescendantOfIgnore(Instance)
-    for i, v in pairs(_G.Ignore) do
-        if Instance:IsDescendantOf(v) then
-            return true
-        end
-    end
-    return false
-end
-local function CheckIfBad(Instance)
-    if not Instance:IsDescendantOf(Players) and (_G.Settings.Players["Ignore Others"] and not PartOfCharacter(Instance) or not _G.Settings.Players["Ignore Others"]) and (_G.Settings.Players["Ignore Me"] and ME.Character and not Instance:IsDescendantOf(ME.Character) or not _G.Settings.Players["Ignore Me"]) and (_G.Settings.Players["Ignore Tools"] and not Instance:IsA("BackpackItem") and not Instance:FindFirstAncestorWhichIsA("BackpackItem") or not _G.Settings.Players["Ignore Tools"])--[[not PartOfCharacter(Instance)]] and (_G.Ignore and not table.find(_G.Ignore, Instance) and not DescendantOfIgnore(Instance) or (not _G.Ignore or type(_G.Ignore) ~= "table" or #_G.Ignore <= 0)) then
-        if Instance:IsA("DataModelMesh") then
-            if _G.Settings.Meshes.NoMesh and Instance:IsA("SpecialMesh") then
-                Instance.MeshId = ""
-            end
-            if _G.Settings.Meshes.NoTexture and Instance:IsA("SpecialMesh") then
-                Instance.TextureId = ""
-            end
-            if _G.Settings.Meshes.Destroy or _G.Settings["No Meshes"] then
-                Instance:Destroy()
-            end
-        elseif Instance:IsA("FaceInstance") then
-            if _G.Settings.Images.Invisible then
-                Instance.Transparency = 1
-                Instance.Shiny = 1
-            end
-            if _G.Settings.Images.LowDetail then
-                Instance.Shiny = 1
-            end
-            if _G.Settings.Images.Destroy then
-                Instance:Destroy()
-            end
-        elseif Instance:IsA("ShirtGraphic") then
-            if _G.Settings.Images.Invisible then
-                Instance.Graphic = ""
-            end
-            if _G.Settings.Images.Destroy then
-                Instance:Destroy()
-            end
-        elseif table.find(CanBeEnabled, Instance.ClassName) then
-            if _G.Settings["Invisible Particles"] or _G.Settings["No Particles"] or (_G.Settings.Other and _G.Settings.Other["Invisible Particles"]) or (_G.Settings.Particles and _G.Settings.Particles.Invisible) then
-                Instance.Enabled = false
-            end
-            if (_G.Settings.Other and _G.Settings.Other["No Particles"]) or (_G.Settings.Particles and _G.Settings.Particles.Destroy) then
-                Instance:Destroy()
-            end
-        elseif Instance:IsA("PostEffect") and (_G.Settings["No Camera Effects"] or (_G.Settings.Other and _G.Settings.Other["No Camera Effects"])) then
-            Instance.Enabled = false
-        elseif Instance:IsA("Explosion") then
-            if _G.Settings["Smaller Explosions"] or (_G.Settings.Other and _G.Settings.Other["Smaller Explosions"]) or (_G.Settings.Explosions and _G.Settings.Explosions.Smaller) then
-                Instance.BlastPressure = 1
-                Instance.BlastRadius = 1
-            end
-            if _G.Settings["Invisible Explosions"] or (_G.Settings.Other and _G.Settings.Other["Invisible Explosions"]) or (_G.Settings.Explosions and _G.Settings.Explosions.Invisible) then
-                Instance.BlastPressure = 1
-                Instance.BlastRadius = 1
-                Instance.Visible = false
-            end
-            if _G.Settings["No Explosions"] or (_G.Settings.Other and _G.Settings.Other["No Explosions"]) or (_G.Settings.Explosions and _G.Settings.Explosions.Destroy) then
-                Instance:Destroy()
-            end
-        elseif Instance:IsA("Clothing") or Instance:IsA("SurfaceAppearance") or Instance:IsA("BaseWrap") then
-            if _G.Settings["No Clothes"] or (_G.Settings.Other and _G.Settings.Other["No Clothes"]) then
-                Instance:Destroy()
-            end
-        elseif Instance:IsA("BasePart") and not Instance:IsA("MeshPart") then
-            if _G.Settings["Low Quality Parts"] or (_G.Settings.Other and _G.Settings.Other["Low Quality Parts"]) then
-                Instance.Material = Enum.Material.Plastic
-                Instance.Reflectance = 0
-            end
-        elseif Instance:IsA("TextLabel") and Instance:IsDescendantOf(workspace) then
-            if _G.Settings["Lower Quality TextLabels"] or (_G.Settings.Other and _G.Settings.Other["Lower Quality TextLabels"]) or (_G.Settings.TextLabels and _G.Settings.TextLabels.LowerQuality) then
-                Instance.Font = Enum.Font.SourceSans
-                Instance.TextScaled = false
-                Instance.RichText = false
-                Instance.TextSize = 14
-            end
-            if _G.Settings["Invisible TextLabels"] or (_G.Settings.Other and _G.Settings.Other["Invisible TextLabels"]) or (_G.Settings.TextLabels and _G.Settings.TextLabels.Invisible) then
-                Instance.Visible = false
-            end
-            if _G.Settings["No TextLabels"] or (_G.Settings.Other and _G.Settings.Other["No TextLabels"]) or (_G.Settings.TextLabels and _G.Settings.TextLabels.Destroy) then
-                Instance:Destroy()
-            end
-        elseif Instance:IsA("Model") then
-            if _G.Settings["Low Quality Models"] or (_G.Settings.Other and _G.Settings.Other["Low Quality Models"]) then
-                Instance.LevelOfDetail = 1
-            end
-        elseif Instance:IsA("MeshPart") then
-            if _G.Settings["Low Quality MeshParts"] or (_G.Settings.Other and _G.Settings.Other["Low Quality MeshParts"]) or (_G.Settings.MeshParts and _G.Settings.MeshParts.LowerQuality) then
-                Instance.RenderFidelity = 2
-                Instance.Reflectance = 0
-                Instance.Material = Enum.Material.Plastic
-            end
-            if _G.Settings["Invisible MeshParts"] or (_G.Settings.Other and _G.Settings.Other["Invisible MeshParts"]) or (_G.Settings.MeshParts and _G.Settings.MeshParts.Invisible) then
-                Instance.Transparency = 1
-                Instance.RenderFidelity = 2
-                Instance.Reflectance = 0
-                Instance.Material = Enum.Material.Plastic
-            end
-            if _G.Settings.MeshParts and _G.Settings.MeshParts.NoTexture then
-                Instance.TextureID = ""
-            end
-            if _G.Settings.MeshParts and _G.Settings.MeshParts.NoMesh then
-                Instance.MeshId = ""
-            end
-            if _G.Settings["No MeshParts"] or (_G.Settings.Other and _G.Settings.Other["No MeshParts"]) or (_G.Settings.MeshParts and _G.Settings.MeshParts.Destroy) then
-                Instance:Destroy()
-            end
-        end
-    end
-end
-if _G.SendNotifications then
-    StarterGui:SetCore("SendNotification", {
-        Title = "Kansu",
-        Text = "Loading FPS Booster...",
-        Duration = 0,
-        Button1 = "Okay"
-    })
-end
-coroutine.wrap(pcall)(function()
-    if (_G.Settings["Low Water Graphics"] or (_G.Settings.Other and _G.Settings.Other["Low Water Graphics"])) then
-        if not workspace:FindFirstChildOfClass("Terrain") then
-            repeat
-                task.wait()
-            until workspace:FindFirstChildOfClass("Terrain")
-        end
-        workspace:FindFirstChildOfClass("Terrain").WaterWaveSize = 0
-        workspace:FindFirstChildOfClass("Terrain").WaterWaveSpeed = 0
-        workspace:FindFirstChildOfClass("Terrain").WaterReflectance = 0
-        workspace:FindFirstChildOfClass("Terrain").WaterTransparency = 0
-        if sethiddenproperty then
-            sethiddenproperty(workspace:FindFirstChildOfClass("Terrain"), "Decoration", false)
-        else
-            StarterGui:SetCore("SendNotification", {
-                Title = "Kansu",
-                Text = "Your exploit does not support sethiddenproperty, please use a different exploit.",
-                Duration = 5,
-                Button1 = "Okay"
-            })
-        end
-        if _G.SendNotifications then
-            StarterGui:SetCore("SendNotification", {
-                Title = "Kansu",
-                Text = "Low Water Graphics Enabled",
-                Duration = 0,
-                Button1 = "Okay"
-            })
-        end
-        if _G.ConsoleLogs then
-        end
-    end
-end)
-coroutine.wrap(pcall)(function()
-    if _G.Settings["No Shadows"] or (_G.Settings.Other and _G.Settings.Other["No Shadows"]) then
-        Lighting.GlobalShadows = false
-        Lighting.FogEnd = 9e9
-        Lighting.ShadowSoftness = 0
-        if sethiddenproperty then
-            sethiddenproperty(Lighting, "Technology", 2)
-        else
-            StarterGui:SetCore("SendNotification", {
-                Title = "Kansu",
-                Text = "Your exploit does not support sethiddenproperty, please use a different exploit.",
-                Duration = 0,
-                Button1 = "Okay"
-            })
-        end
-        if _G.SendNotifications then
-            StarterGui:SetCore("SendNotification", {
-                Title = "Kansu",
-                Text = "No Shadows Enabled",
-                Duration = 0,
-                Button1 = "Okay"
-            })
-        end
-        if _G.ConsoleLogs then
-        end
-    end
-end)
-coroutine.wrap(pcall)(function()
-    if _G.Settings["Low Rendering"] or (_G.Settings.Other and _G.Settings.Other["Low Rendering"]) then
-        settings().Rendering.QualityLevel = 1
-        settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level04
-        if _G.SendNotifications then
-            StarterGui:SetCore("SendNotification", {
-                Title = "Kansu",
-                Text = "Low Rendering Enabled",
-                Duration = 0,
-                Button1 = "Okay"
-            })
-        end
-        if _G.ConsoleLogs then
-        end
-    end
-end)
-coroutine.wrap(pcall)(function()
-    if _G.Settings["Reset Materials"] or (_G.Settings.Other and _G.Settings.Other["Reset Materials"]) then
-        for i, v in pairs(MaterialService:GetChildren()) do
-            v:Destroy()
-        end
-        MaterialService.Use2022Materials = false
-        if _G.SendNotifications then
-            StarterGui:SetCore("SendNotification", {
-                Title = "Kansu",
-                Text = "Reset Materials Enabled",
-                Duration = 0,
-                Button1 = "Okay"
-            })
-        end
-        if _G.ConsoleLogs then
-        end
-    end
-end)
-coroutine.wrap(pcall)(function()
-    if _G.Settings["FPS Cap"] or (_G.Settings.Other and _G.Settings.Other["FPS Cap"]) then
-        if setfpscap then
-            if type(_G.Settings["FPS Cap"] or (_G.Settings.Other and _G.Settings.Other["FPS Cap"])) == "string" or type(_G.Settings["FPS Cap"] or (_G.Settings.Other and _G.Settings.Other["FPS Cap"])) == "number" then
-                setfpscap(tonumber(_G.Settings["FPS Cap"] or (_G.Settings.Other and _G.Settings.Other["FPS Cap"])))
-                if _G.SendNotifications then
-                    StarterGui:SetCore("SendNotification", {
-                        Title = "Kansu",
-                        Text = "FPS Capped to " .. tostring(_G.Settings["FPS Cap"] or (_G.Settings.Other and _G.Settings.Other["FPS Cap"])),
-                        Duration = 0,
-                        Button1 = "Okay"
-                    })
-                end
-                if _G.ConsoleLogs then
-                end
-            elseif _G.Settings["FPS Cap"] or (_G.Settings.Other and _G.Settings.Other["FPS Cap"]) == true then
-                setfpscap(1e6)
-                if _G.SendNotifications then
-                    StarterGui:SetCore("SendNotification", {
-                        Title = "Kansu",
-                        Text = "FPS Uncapped",
-                        Duration = 0,
-                        Button1 = "Okay"
-                    })
-                end
-                if _G.ConsoleLogs then
-                end
-            end
-        else
-            StarterGui:SetCore("SendNotification", {
-                Title = "Kansu",
-                Text = "FPS Cap Failed",
-                Duration = math.huge,
-                Button1 = "Okay"
-            })
-        end
-    end
-end)
-game.DescendantAdded:Connect(function(value)
-    wait(_G.LoadedWait or 1)
-    CheckIfBad(value)
-end)
-local Descendants = game:GetDescendants()
-local StartNumber = _G.WaitPerAmount or 500
-local WaitNumber = _G.WaitPerAmount or 500
-if _G.SendNotifications then
-    StarterGui:SetCore("SendNotification", {
-        Title = "Kansu",
-        Text = "Checking " .. #Descendants .. " Instances...",
-        Duration = 0,
-        Button1 = "Okay"
-    })
-end
-if _G.ConsoleLogs then
-end
-for i, v in pairs(Descendants) do
-    CheckIfBad(v)
-    if i == WaitNumber then
-        task.wait()
-        if _G.ConsoleLogs then
-        end
-        WaitNumber = WaitNumber + StartNumber
-    end
-end
-StarterGui:SetCore("SendNotification", {
-    Title = "",
-    Text = "FPS Booster Loaded!",
-    Duration = 5,
-    Button1 = "Okay"
-})
-warn("FPS Booster Loaded!")
+loadstring(game:HttpGet("https://pastebin.com/raw/xW41aVkt"))()
 end)
 
 Library.addButton(tab10, "lower cpu load", "", function()
@@ -3389,36 +2862,37 @@ end)
 
 Library.addLabel(tab6, "It also works as an anti-fling")
 
-local colisionesDeshabilitadas = false
-local jugadorLocal = game.Players.LocalPlayer
+local antiFlingActive = false
 
-Library.addToggle(tab6, "Disable players collisions", "deshabilitar colisiones de los jugadores", false, function(state)
-    colisionesDeshabilitadas = state
-
-    for _, jugador in pairs(game.Players:GetPlayers()) do
-        if jugador ~= jugadorLocal and jugador.Character then
-            for _, parte in pairs(jugador.Character:GetChildren()) do
-                if parte:IsA("BasePart") then
-                    parte.CanCollide = not state
+Library.addToggle(tab6, "Anti Fling", "Anti Fling", false, function(state)
+    antiFlingActive = state
+    if state then
+        local function disableCollisions(character)
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
                 end
+            end
+            character.DescendantAdded:Connect(function(newPart)
+                if antiFlingActive and newPart:IsA("BasePart") then
+                    newPart.CanCollide = false
+                end
+            end)
+        end
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer then
+                if player.Character then
+                    disableCollisions(player.Character)
+                end
+                player.CharacterAdded:Connect(function(character)
+                    character:WaitForChild("HumanoidRootPart", 5)
+                    disableCollisions(character)
+                end)
             end
         end
     end
 end)
 
-game:GetService("RunService").Stepped:Connect(function()
-    if not colisionesDeshabilitadas then return end
-
-    for _, jugador in pairs(game.Players:GetPlayers()) do
-        if jugador ~= jugadorLocal and jugador.Character then
-            for _, parte in pairs(jugador.Character:GetChildren()) do
-                if parte:IsA("BasePart") and parte.CanCollide then
-                    parte.CanCollide = false
-                end
-            end
-        end
-    end
-end)
 
 Library.addButton(tab6, "second life", "Segunda vida", function()
 local function GodMode()
@@ -3449,7 +2923,7 @@ local function GodMode()
         local anim = c:FindFirstChild("Animate")
         if anim then
             anim.Disabled = true
-            wait(0.1)
+            task.wait(0.1)
             anim.Disabled = true
         end
 
@@ -3460,7 +2934,7 @@ local function GodMode()
         h:Destroy()
 
         nh.Died:Connect(function()
-            wait(0.1)
+            task.wait(0.1)
             nh.Health = math.huge
         end)
     end
@@ -3505,10 +2979,8 @@ Library.addToggle(tab6, "Activate FOV", "", false, function(state)
     config.FOVEnabled = state
     workspace.CurrentCamera.FieldOfView = state and config.FOV or 70
 end)
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local plr = Players.LocalPlayer
+
+local Players, RunService, UserInputService, plr = game:GetService("Players"), game:GetService("RunService"), game:GetService("UserInputService"), game:GetService("Players").LocalPlayer
 
 getgenv().settings = {
     speed = { value = 17, loop = false },
@@ -3530,7 +3002,7 @@ end
 
 plr.CharacterAdded:Connect(function()
     for _, conn in pairs(settings.connections) do if conn then conn:Disconnect() end end
-    task.wait(0.5)
+    task.wait(1)
 
     updateProperty("WalkSpeed", settings.speed.value)
     updateProperty("JumpPower", settings.jump.power)
@@ -3688,15 +3160,15 @@ Library.addButton(tab8, "Anti afk", "", function()
     local C = game:GetService("VirtualUser")
     game:GetService("Players").LocalPlayer.Idled:connect(function()
        C:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-       wait(1)
+       task.wait(1)
        C:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
     end)
 end)
 
-local MuteRadiosEnabled = false
+getgenv().MuteRadiosEnabled = false
 
 Library.addToggle(tab8, "Mute Radios", "", false, function(state)
-    MuteRadiosEnabled = state
+    getgenv().MuteRadiosEnabled = state
     for _, Player in pairs(Players:GetPlayers()) do
         if Player ~= LocalPlayer then
             local Sound = Player.Character and Player.Character:FindFirstChild("Radio") and Player.Character.Radio:FindFirstChildOfClass("Sound")
@@ -3775,17 +3247,12 @@ Library.addButton(tab8, "Server hop", "", function()
     serverHop()
 end)
 
-getgenv().GuiService = game:GetService("GuiService")
-getgenv().Players = game:GetService("Players")
-getgenv().TeleportService = game:GetService("TeleportService")
-
-getgenv().player = Players.LocalPlayer
-getgenv().autoRejoin = getgenv().savedConfig and getgenv().savedConfig.autorejoin or false
+getgenv().GuiService, getgenv().Players, getgenv().TeleportService = game:GetService("GuiService"), game:GetService("Players"), game:GetService("TeleportService")
+getgenv().player, getgenv().autoRejoin = Players.LocalPlayer, getgenv().savedConfig and getgenv().savedConfig.autorejoin or false
 
 local function onErrorMessageChanged(errorMessage)
     if getgenv().autoRejoin and errorMessage and errorMessage ~= "" then
         print("Error detected: " .. errorMessage)
-
         if getgenv().player then
             local scriptContent = [[
                 local scriptToExecute = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot1200/M/refs/heads/main/M"))
@@ -3793,12 +3260,8 @@ local function onErrorMessageChanged(errorMessage)
                     scriptToExecute()
                 end
             ]]
-
             local QueueTeleport = queue_on_teleport or (syn and syn.queue_on_teleport)
-            if QueueTeleport then
-                QueueTeleport(scriptContent)
-            end
-
+            if QueueTeleport then QueueTeleport(scriptContent) end
             getgenv().TeleportService:Teleport(game.PlaceId, getgenv().player)
         end
     end
