@@ -2863,22 +2863,14 @@ Library.addToggle(tab6, "Anti Fling", "Anti Fling", false, function(s)
 end)
 
 game:GetService("RunService").RenderStepped:Connect(function()
-    if a then
-        local p = game.Players.LocalPlayer
-        for _, plr in ipairs(game.Players:GetPlayers()) do
-            if plr.Character then
-                for _, part in ipairs(plr.Character:GetChildren()) do
-                    if part:IsA("BasePart") and plr ~= p then
+    local p = game.Players.LocalPlayer
+    for _, plr in ipairs(game.Players:GetPlayers()) do
+        if plr.Character and plr.Character:FindFirstChild("Humanoid") and plr ~= p then
+            for _, part in ipairs(plr.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    if a then
                         part.CanCollide = false
-                    end
-                end
-            end
-        end
-    else
-        for _, plr in ipairs(game.Players:GetPlayers()) do
-            if plr.Character then
-                for _, part in ipairs(plr.Character:GetChildren()) do
-                    if part:IsA("BasePart") then
+                    else
                         part.CanCollide = true
                     end
                 end
