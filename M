@@ -2,11 +2,21 @@ repeat task.wait() until game.Players.LocalPlayer.Character; local StarterGui = 
 
 getgenv().Players, getgenv().Workspace, getgenv().ReplicatedStorage, getgenv().RunService, getgenv().Lighting, getgenv().UIS, getgenv().ScriptContext, getgenv().Camera, getgenv().player, getgenv().Mouse, getgenv().Terrain, getgenv().VirtualUser, getgenv().LocalPlayer, getgenv().PlayerScripts, getgenv().RawMetatable, getgenv().OldNameCall, getgenv().UserInputService = game:GetService("Players"), game:GetService("Workspace"), game:GetService("ReplicatedStorage"), game:GetService("RunService"), game:GetService("Lighting"), game:GetService("UserInputService"), game:GetService("ScriptContext"), game:GetService("Workspace").CurrentCamera, game:GetService("Players").LocalPlayer, game:GetService("Players").LocalPlayer:GetMouse(), game:GetService("Workspace").Terrain, game:GetService("VirtualUser"), game:GetService("Players").LocalPlayer, game:GetService("Players").LocalPlayer:FindFirstChildOfClass("PlayerScripts"), getrawmetatable(game), getrawmetatable(game).__namecall, game:GetService("UserInputService")
 
-getgenv().Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot1200/Li/refs/heads/main/Li", true))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot1200/Li/refs/heads/main/Li", true))()
 
-getgenv().ui = getgenv().Library:CreateUI(string.char(77, 117, 114, 100, 101, 114) .. " " .. string.char(77, 121, 115, 116, 101, 114) .. " " .. string.char(50) .. " " .. string.char(47) .. " " .. string.char(55, 55) , string.char(66, 121) .. " " .. string.char(67, 97, 112, 121, 98, 97, 114, 97, 83, 99, 114, 105, 112, 116))
+local ui = Library:CreateUI("Murder Mystery 2 / 90", "By CapybaraScript")
 
-getgenv().tab1, getgenv().tab2, getgenv().tab3, getgenv().tab10, getgenv().tab4, getgenv().tab5, getgenv().tab6, getgenv().tab7, getgenv().tab8, getgenv().tab9 = getgenv().ui:AddTab("Combat"), getgenv().ui:AddTab("Hitbox expander"), getgenv().ui:AddTab("Visual"), getgenv().ui:AddTab("Optimization"), getgenv().ui:AddTab("Teleport"), getgenv().ui:AddTab("Auto Farm"), getgenv().ui:AddTab("Local Player"), getgenv().ui:AddTab("Emote"), getgenv().ui:AddTab("ActMgr"), getgenv().ui:AddTab("buttons")
+getgenv().tab1 = ui:AddTab(false, "INFO")
+getgenv().tab2 = ui:AddTab(false, "Combat")
+getgenv().tab3 = ui:AddTab(false, "Hitbox expander")
+getgenv().tab4 = ui:AddTab(false, "Visual")
+getgenv().tab5 = ui:AddTab(false, "Teleport")
+getgenv().tab6 = ui:AddTab(false, "Auto Farm")
+getgenv().tab7 = ui:AddTab(false, "Local Player")
+getgenv().tab8 = ui:AddTab(false, "Emote")
+getgenv().tab9 = ui:AddTab(false, "ActMgr")
+getgenv().tab10 = ui:AddTab(false, "buttons")
+getgenv().tab11 = ui:AddTab(false, "Optimization")
 
 getgenv().configFileName = "configmm2.txt"
 
@@ -45,6 +55,117 @@ if not workspace:FindFirstChild("WideBlock") then
     wideBlock.Transparency = 0.5
     wideBlock.Parent = workspace
 end
+
+local executor = "Unknown Executor"
+if syn then
+    executor = "Synapse X"
+elseif KRNL_LOADED then
+    executor = "KRNL"
+elseif fluxus then
+    executor = "Fluxus"
+elseif evon then
+    executor = "Evon"
+elseif Arceus then
+    executor = "Arceus X"
+elseif wave then
+    executor = "Wave"
+elseif codex then
+    executor = "Codex"
+elseif vega_x then
+    executor = "Vega X"
+elseif delta then
+    executor = "Delta"
+elseif solara then
+    executor = "Solara"
+elseif cryptic then
+    executor = "Cryptic"
+elseif trigon then
+    executor = "Trigon"
+elseif MantiPWF then
+    executor = "MantiPWF"
+else
+    if identifyexecutor then
+        executor = identifyexecutor()
+    elseif getexecutorname then
+        executor = getexecutorname()
+    end
+end
+
+Library.addLabel(tab11, "Executor: " .. executor)
+
+getgenv().player = game:GetService("Players").LocalPlayer
+getgenv().stats = game:GetService("Stats")
+getgenv().runService = game:GetService("RunService")
+getgenv().humanoidRootPart = getgenv().player.Character and getgenv().player.Character:FindFirstChild("HumanoidRootPart")
+
+getgenv().playerNameLabel = Library.addLabel(tab11, "Player Name: Calculating...")
+getgenv().displayNameLabel = Library.addLabel(tab11, "Display Name: Calculating...")
+getgenv().fpsLabel = Library.addLabel(tab11, "FPS: Calculating...")
+getgenv().pingLabel = Library.addLabel(tab11, "Ping: Calculating...")
+getgenv().localTimeLabel = Library.addLabel(tab11, "Local Time: Calculating...")
+getgenv().serverTimeLabel = Library.addLabel(tab11, "Server Time: Calculating...")
+getgenv().speedLabel = Library.addLabel(tab11, "Speed: Calculating...")
+getgenv().positionLabel = Library.addLabel(tab11, "Position: Calculating...")
+getgenv().memoryLabel = Library.addLabel(tab11, "Memory: Calculating...")
+
+getgenv().lastTick = tick()
+getgenv().fps = 0
+
+getgenv().runService.Heartbeat:Connect(function()
+    getgenv().fps = math.floor(1 / (tick() - getgenv().lastTick))
+    getgenv().lastTick = tick()
+end)
+
+getgenv().UpdateStats = function()
+    local ping = getgenv().stats.Network and getgenv().stats.Network.ServerStatsItem and getgenv().stats.Network.ServerStatsItem["Data Ping"] and getgenv().stats.Network.ServerStatsItem["Data Ping"]:GetValue() or 0
+    local timeNow = os.date("*t")
+    local formattedTime = string.format("%02d:%02d:%02d", timeNow.hour, timeNow.min, timeNow.sec)
+    local GameTime = math.floor(workspace.DistributedGameTime + 0.5)
+    local Hour = math.floor(GameTime / 3600) % 24
+    local Minute = math.floor(GameTime / 60) % 60
+    local Second = GameTime % 60
+    local formattedServerTime = string.format("%02d:%02d:%02d", Hour, Minute, Second)
+    local velocity = getgenv().humanoidRootPart and getgenv().humanoidRootPart.Velocity.Magnitude or 0
+    local position = getgenv().humanoidRootPart and getgenv().humanoidRootPart.Position or Vector3.new(0, 0, 0)
+    local memoryUsage = math.floor(collectgarbage("count") / 1024)  -- Corregido el error tipográfico
+    local playerName = getgenv().player.Name
+    local displayName = getgenv().player.DisplayName
+
+    if getgenv().playerNameLabel then
+        getgenv().playerNameLabel:Set("Player Name: " .. playerName)
+    end
+    if getgenv().displayNameLabel then
+        getgenv().displayNameLabel:Set("Display Name: " .. displayName)
+    end
+    if getgenv().fpsLabel then
+        getgenv().fpsLabel:Set("FPS: " .. getgenv().fps)
+    end
+    if getgenv().pingLabel then
+        getgenv().pingLabel:Set("Ping: " .. ping .. " ms")
+    end
+    if getgenv().localTimeLabel then
+        getgenv().localTimeLabel:Set("Local Time: " .. formattedTime)
+    end
+    if getgenv().serverTimeLabel then
+        getgenv().serverTimeLabel:Set("Server Time: " .. formattedServerTime)
+    end
+    if getgenv().speedLabel then
+        getgenv().speedLabel:Set("Speed: " .. math.floor(velocity) .. " u/s")
+    end
+    if getgenv().positionLabel then
+        getgenv().positionLabel:Set(string.format("Position: X=%.2f, Y=%.2f, Z=%.2f", position.X, position.Y, position.Z))
+    end
+    if getgenv().memoryLabel then
+        getgenv().memoryLabel:Set("Memory: " .. memoryUsage .. " MB")
+    end
+end
+
+task.spawn(function()
+    while task.wait(1) do
+        getgenv().humanoidRootPart = getgenv().player.Character and getgenv().player.Character:FindFirstChild("HumanoidRootPart")
+        pcall(getgenv().UpdateStats)
+    end
+end)
 
 Library.addLabel(tab1, "Knife Silent aim")
 
@@ -749,6 +870,59 @@ RS.RenderStepped:Connect(function()
         end
     end
 end)
+
+getgenv().DodgeKnife = false
+
+local RunService = game:GetService("RunService") local Players = game:GetService("Players") local heartbeatConnection
+
+local teleportRadius = 9 local detectionRadius = 25 local localPlayer = Players.LocalPlayer
+
+local function removeAllKnives() for _, knife in ipairs(workspace:GetChildren()) do if knife:IsA("Model") and knife.Name == "ThrowingKnife" then knife:Destroy() end end end
+
+local function teleportPlayer(knife) if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then if localPlayer.Backpack:FindFirstChild("Knife") or localPlayer.Character:FindFirstChild("Knife") then return end
+
+local playerPos = localPlayer.Character.HumanoidRootPart.Position
+    local bladePart = knife:FindFirstChild("BladePosition")
+    
+    if bladePart and bladePart:IsA("BasePart") then
+        local knifePos = bladePart.Position
+        local distance = (playerPos - knifePos).Magnitude
+        
+        if distance <= teleportRadius then
+            local direction = (playerPos - knifePos).unit
+            local perpendicularDirection = Vector3.new(-direction.Z, 0, direction.X)
+            local safePosition = knifePos + perpendicularDirection * teleportRadius
+            
+            local targetPosition = Vector3.new(safePosition.X, playerPos.Y, safePosition.Z)
+            localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(targetPosition)
+        end
+    end
+end
+
+end
+
+local function checkKnives() for _, knife in ipairs(workspace:GetChildren()) do if knife:IsA("Model") and knife.Name == "ThrowingKnife" then local bladePart = knife:FindFirstChild("BladePosition")
+
+if bladePart and bladePart:IsA("BasePart") then
+            local knifePos = bladePart.Position
+            if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local playerPos = localPlayer.Character.HumanoidRootPart.Position
+                local distance = (playerPos - knifePos).Magnitude
+                if distance <= detectionRadius then
+                    teleportPlayer(knife)
+                end
+            end
+        end
+    end
+end
+
+end
+
+local function toggleHeartbeat() if getgenv().DodgeKnife then removeAllKnives() heartbeatConnection = RunService.Heartbeat:Connect(checkKnives) else if heartbeatConnection then heartbeatConnection:Disconnect() end end end
+
+Library.addToggle(tab1, "Dodge Throw knife", "Esquivar cuchillo lanzado", false, function(state) getgenv().DodgeKnife = state toggleHeartbeat() end)
+
+toggleHeartbeat()
 
 Library.addButton(tab1, "teleport and shoot the Murderer", "teletransporte y disparar al asesino", function()
 local existingGui = game:GetService("CoreGui"):FindFirstChild("tps")
@@ -2765,25 +2939,36 @@ Library.addToggle(tab5, "Reset when bag is full", "Morir cuando la bolsa esta ll
 end)
 
 local connection
-Library.addToggle(tab5, "magnet coin", "Monedas iman", false, function(state)
+Library.addToggle(tab5, "magnet coin", "Monedas imán", false, function(state)
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
     local sizeMultiplier = 4.5
+    local affectedCoins = {}
 
     local function updateCoins()
+        if not rootPart then return end
+        
         for _, model in ipairs(workspace:GetChildren()) do
             local coinContainer = model:FindFirstChild("CoinContainer")
             if coinContainer then
-                for _, child in ipairs(coinContainer:GetChildren()) do
-                    if child:IsA("BasePart") and child.Name == "Coin_Server" then
-                        if state then
-                            child.Size = Vector3.new(sizeMultiplier, sizeMultiplier, sizeMultiplier)
-                        else
-                            child.Size = Vector3.new(1, 1, 1)
+                for _, coin in ipairs(coinContainer:GetChildren()) do
+                    if coin:IsA("BasePart") and coin.Name == "Coin_Server" then
+                        local distance = (rootPart.Position - coin.Position).Magnitude
+                        
+                        if state and distance < 15 then
+                            if not affectedCoins[coin] then
+                                coin.Size = Vector3.new(sizeMultiplier, sizeMultiplier, sizeMultiplier)
+                                affectedCoins[coin] = true
+                            end
+                        elseif not state and affectedCoins[coin] then
+                            coin.Size = Vector3.new(1, 1, 1)
+                            affectedCoins[coin] = nil
                         end
                     end
                 end
             end
         end
-        task.wait(1)
     end
 
     if state then
@@ -2793,6 +2978,7 @@ Library.addToggle(tab5, "magnet coin", "Monedas iman", false, function(state)
             connection:Disconnect()
             connection = nil
         end
+        affectedCoins = {}
     end
 end)
 
@@ -2857,21 +3043,38 @@ Library.addButton(tab6, "Anchor character", "Anclar el personaje", function()
 end)
 
 local a = false
+local originalCollisionSizes = {}
 
 Library.addToggle(tab6, "Anti Fling", "Anti Fling", false, function(s)
     a = s
-end)
-
-game:GetService("RunService").RenderStepped:Connect(function()
-    local p = game.Players.LocalPlayer
+    
     for _, plr in ipairs(game.Players:GetPlayers()) do
-        if plr.Character and plr.Character:FindFirstChild("Humanoid") and plr ~= p then
+        if plr.Character then
             for _, part in ipairs(plr.Character:GetChildren()) do
                 if part:IsA("BasePart") then
                     if a then
+                        originalCollisionSizes[part] = part.Size
                         part.CanCollide = false
                     else
+                        if originalCollisionSizes[part] then
+                            part.Size = originalCollisionSizes[part]
+                        end
                         part.CanCollide = true
+                    end
+                end
+            end
+        end
+    end
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    if a then
+        local p = game.Players.LocalPlayer
+        for _, plr in ipairs(game.Players:GetPlayers()) do
+            if plr.Character then
+                for _, part in ipairs(plr.Character:GetChildren()) do
+                    if part:IsA("BasePart") and plr ~= p then
+                        part.CanCollide = false
                     end
                 end
             end
