@@ -6,17 +6,17 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot12
 
 local ui = Library:CreateUI("Murder Mystery 2 / 90", "By CapybaraScript")
 
-getgenv().tab1 = ui:AddTab(false, "INFO")
-getgenv().tab2 = ui:AddTab(false, "Combat")
-getgenv().tab3 = ui:AddTab(false, "Hitbox expander")
-getgenv().tab4 = ui:AddTab(false, "Visual")
-getgenv().tab5 = ui:AddTab(false, "Teleport")
-getgenv().tab6 = ui:AddTab(false, "Auto Farm")
-getgenv().tab7 = ui:AddTab(false, "Local Player")
-getgenv().tab8 = ui:AddTab(false, "Emote")
-getgenv().tab9 = ui:AddTab(false, "ActMgr")
-getgenv().tab10 = ui:AddTab(false, "buttons")
-getgenv().tab11 = ui:AddTab(false, "Optimization")
+getgenv().tab11 = ui:AddTab(false, "INFO")
+getgenv().tab1 = ui:AddTab(false, "Combat")
+getgenv().tab2 = ui:AddTab(false, "Hitbox expander")
+getgenv().tab10 = ui:AddTab(false, "Optimization")
+getgenv().tab3 = ui:AddTab(false, "Visual")
+getgenv().tab4 = ui:AddTab(false, "Teleport")
+getgenv().tab5 = ui:AddTab(false, "Auto Farm")
+getgenv().tab6 = ui:AddTab(false, "Local Player")
+getgenv().tab7 = ui:AddTab(false, "Emote")
+getgenv().tab8 = ui:AddTab(false, "ActMgr")
+getgenv().tab9 = ui:AddTab(false, "buttons")
 
 getgenv().configFileName = "configmm2.txt"
 
