@@ -1,7 +1,7 @@
 repeat task.wait() until game.Players.LocalPlayer.Character; local StarterGui = game:GetService("StarterGui"); local function Notify(Title, Message, Time) StarterGui:SetCore("SendNotification", {Title = Title, Text = Message, Duration = Time or 5}) end; if _G.capy then return Notify("Already Loaded", "Rejoin to continue.") else _G.capy = true end
 getgenv().Players, getgenv().Workspace, getgenv().ReplicatedStorage, getgenv().RunService, getgenv().Lighting, getgenv().UIS, getgenv().ScriptContext, getgenv().Camera, getgenv().player, getgenv().Mouse, getgenv().Terrain, getgenv().VirtualUser, getgenv().LocalPlayer, getgenv().PlayerScripts, getgenv().RawMetatable, getgenv().OldNameCall, getgenv().UserInputService = game:GetService("Players"), game:GetService("Workspace"), game:GetService("ReplicatedStorage"), game:GetService("RunService"), game:GetService("Lighting"), game:GetService("UserInputService"), game:GetService("ScriptContext"), game:GetService("Workspace").CurrentCamera, game:GetService("Players").LocalPlayer, game:GetService("Players").LocalPlayer:GetMouse(), game:GetService("Workspace").Terrain, game:GetService("VirtualUser"), game:GetService("Players").LocalPlayer, game:GetService("Players").LocalPlayer:FindFirstChildOfClass("PlayerScripts"), getrawmetatable(game), getrawmetatable(game).__namecall, game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
-
+local CoreGui = game:GetService("CoreGui")
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot1200/Li/refs/heads/main/Li", true))()
 
 local allowedUserIds = {
@@ -10,7 +10,7 @@ local allowedUserIds = {
     7922739638, 1234567890, 1122334455, 4229542697, 5837498134
 }
 
-local ui = Library:CreateUI("Murder Mystery 2 / 100", "By CapybaraScript")
+local ui = Library:CreateUI("Murder Mystery 2 / 105", "By CapybaraScript")
 
 getgenv().tab11 = ui:AddTab(false, "INFO")
 getgenv().tab1 = ui:AddTab(false, "Combat")
@@ -565,35 +565,35 @@ OldNameCall = hookmetamethod(game, "__namecall", function(Object, ...)
     return OldNameCall(Object, unpack(Arguments))
 end)
 
+local button = nil
+
 Library.addButton(tab1, "Shoot the murderer (Button)", "Disparar al murderer (botton)", function()
-local g = game:GetService("CoreGui"):FindFirstChild("ShootMurdererGui")
-if g then return end
-
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ShootMurdererGui"
-screenGui.Parent = game:GetService("CoreGui")
-
-local button = Instance.new("TextButton")
-button.Name = "Button"
-button.Size = UDim2.new(0, 130, 0, 100)
-button.Position = UDim2.new(0.85, -50, 0.15, -50)
-button.Text = "Shoot"
-button.Font = Enum.Font.Gotham
-button.TextSize = 13
-button.TextColor3 = Color3.fromRGB(255, 255, 255)
-button.BackgroundColor3 = Color3.fromRGB(138, 43, 250)
-button.BackgroundTransparency = 0.7
-button.Draggable = true
-button.BorderSizePixel = 0
-button.AutoButtonColor = true
-button.Parent = screenGui
-
-local uicorner = Instance.new("UICorner")
-uicorner.CornerRadius = UDim.new(0, 5)
-uicorner.Parent = button
+local coreGui = game:GetService("CoreGui")
+    if coreGui:FindFirstChild("ShootMurdererGui") then 
+        return 
+    end
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "ShootMurdererGui"
+    screenGui.Parent = coreGui
+    button = Instance.new("TextButton")
+    button.Name = "Button"
+    button.Size = UDim2.new(0, 130, 0, 100)
+    button.Position = UDim2.new(0.85, -50, 0.15, -50)
+    button.Text = "Shoot"
+    button.Font = Enum.Font.Gotham
+    button.TextSize = 13
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.BackgroundColor3 = Color3.fromRGB(138, 43, 250)
+    button.BackgroundTransparency = 0.7
+    button.Draggable = true
+    button.BorderSizePixel = 0
+    button.AutoButtonColor = true
+    button.Parent = screenGui
+    local uicorner = Instance.new("UICorner")
+    uicorner.CornerRadius = UDim.new(0, 5)
+    uicorner.Parent = button
 
 local function getCharacterRootPart(character)
     return character and (character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso"))
@@ -663,6 +663,36 @@ button.MouseButton1Click:Connect(function()
         shootAtKnifePlayer()
     end
 end)
+end)
+
+Library.addToggle(tab1, "botón shoot Draggable", "poder deslizar el botón o no", function()
+    return button and button.Draggable or false
+end, function(state)
+    if button then
+        button.Draggable = state
+    end
+end)
+
+Library.addTextbox(tab1, "Enter Button Size", "Escribe el tamaño del botón", "130", function(inputText)
+    local size = tonumber(inputText)
+    if size then
+        local aspectRatio = 100 / 130
+        button.Size = UDim2.new(0, size, 0, size * aspectRatio)
+    end
+end)
+
+Library.addTextbox(tab1, "Enter Transparency", "Escribe la transparencia", "0.7", function(inputText)
+    local transparency = tonumber(inputText)
+    if transparency then
+        button.BackgroundTransparency = transparency
+    end
+end)
+
+Library.addButton(tab1, "Remove Button", "destruir el botón", function()
+    if button then
+        button:Destroy()
+        button = nil
+    end
 end)
 
 Library.addLabel(tab1, "For Murderer")
@@ -1170,7 +1200,7 @@ getgenv().throwingKnifeReach = 1
 Library.addToggle(tab2, "Throw Knife Reach", "", false, function(state)
 getgenv().throwingKnifeActive = state
 if state then
-getgenv().throwingKnifeReach = 8
+getgenv().throwingKnifeReach = 12
 print("El radio ahora es: " .. getgenv().throwingKnifeReach)
 end
 end)
@@ -1415,8 +1445,8 @@ local function applyESPName(player, color)
                 gui = Instance.new("BillboardGui")
                 gui.Parent = head
                 gui.Adornee = head
-                gui.Size = UDim2.new(0, 90, 0, 30)
-                gui.StudsOffset = Vector3.new(0, 2, 0)
+                gui.Size = UDim2.new(0, 65, 0, 65)
+            gui.StudsOffset = Vector3.new(0, 4, 0)
                 gui.AlwaysOnTop = true
                 gui.ResetOnSpawn = false
                 gui.Enabled = true
@@ -1427,13 +1457,10 @@ local function applyESPName(player, color)
                 textLabel.TextScaled = true
                 textLabel.TextColor3 = color
                 textLabel.Text = player.Name
-                textLabel.TextSize = 12
-            else
-                gui.TextLabel.TextColor3 = color
-                gui.TextLabel.TextSize = 12
-            end
+                textLabel.TextSize = 11
         end
     end
+end
 end
 
 local function clearESPName()
@@ -1700,10 +1727,110 @@ Library.addToggle(tab3, "ESP Tracer", "", false, function(state)
     end
 end)
 
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local LP = Players.LocalPlayer
+local scriptEnabled = false
+
+local function getPlayerRole()
+    local roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+    local playerRole = nil
+
+    for name, data in pairs(roles) do
+        if name == LP.Name then
+            playerRole = data.Role
+            print(LP.Name .. " has the role of " .. playerRole)
+            break
+        end
+    end
+
+    return playerRole
+end
+
+local function showRoleLabel(role)
+    local playerGui = LP:WaitForChild("PlayerGui")
+    local mainGui = playerGui:WaitForChild("MainGUI")
+
+    if mainGui:FindFirstChild("RoleLabel") then
+        return
+    end
+
+    local label = Instance.new("TextLabel")
+    label.Name = "RoleLabel"
+    label.Size = UDim2.new(0, 200, 0, 50)
+    label.Position = UDim2.new(0.5, -100, 0.1, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.new(0, 0, 0)
+    label.Font = Enum.Font.SourceSans
+    label.TextScaled = true
+
+    if role == "Murderer" then
+        label.Text = "Murderer"
+        label.TextColor3 = Color3.new(1, 0, 0)
+    elseif role == "Sheriff" then
+        label.Text = "Sheriff"
+        label.TextColor3 = Color3.new(0, 0, 1)
+    else
+        label.Text = "INNOCENT"
+        label.TextColor3 = Color3.new(0, 1, 0)
+    end
+
+    label.Parent = mainGui
+
+    local function checkRoleSelectorVisibility()
+        local playerGui = LP:WaitForChild("PlayerGui")
+        local mainGui = playerGui:WaitForChild("MainGUI")
+        local gameFrame = mainGui:WaitForChild("Game")
+        local roleSelector = gameFrame:WaitForChild("RoleSelector")
+
+        if not roleSelector.Visible then
+            label:Destroy()
+        end
+    end
+
+    local roleSelectorConn = RunService.Heartbeat:Connect(checkRoleSelectorVisibility)
+end
+
+local function heartbeatCheck(delta)
+    if not scriptEnabled then return end
+
+    local playerGui = LP:WaitForChild("PlayerGui")
+    local mainGui = playerGui:WaitForChild("MainGUI")
+    local gameFrame = mainGui:WaitForChild("Game")
+    local roleSelector = gameFrame:WaitForChild("RoleSelector")
+
+    if roleSelector.Visible then
+        local role = getPlayerRole()
+        if role then
+            showRoleLabel(role)
+        end
+    end
+end
+
+local heartbeatConn = RunService.Heartbeat:Connect(heartbeatCheck)
+
+Library.addToggle(tab3, "Instant role", "", false, function(state)
+    scriptEnabled = state
+
+    if state then
+        local role = getPlayerRole()
+        if role then
+            showRoleLabel(role)
+        end
+    else
+        local playerGui = LP:WaitForChild("PlayerGui")
+        local mainGui = playerGui:WaitForChild("MainGUI")
+        local roleLabel = mainGui:FindFirstChild("RoleLabel")
+        if roleLabel then
+            roleLabel:Destroy()
+        end
+    end
+end)
+
 local animations = { Ninja = { idle1 = "656117400", idle2 = "656118341", walk = "656121766", run = "656118852", jump = "656117878", climb = "656114359", fall = "656115606" }, Robot = { idle1 = "616088211", idle2 = "616089559", walk = "616095330", run = "616091570", jump = "616090535", climb = "616086039", fall = "616087089" }, Cartoonish = { idle1 = "742637544", idle2 = "742638445", walk = "742640026", run = "742638842", jump = "742637942", climb = "742636889", fall = "742637151" }, OldSchool = { idle1 = "531984432", idle2 = "531985026", walk = "531987756", run = "531986720", jump = "531985926", climb = "531983976", fall = "531984193" }, Stylish = { idle1 = "616099170", idle2 = "616100936", walk = "616102896", run = "616101847", jump = "616100296", climb = "616098711", fall = "616098135" }, Bubbly = { idle1 = "910004836", idle2 = "910009958", walk = "910034870", run = "910025107", jump = "910016857", climb = "910001910", fall = "910003713" }, Zombie = { idle1 = "616158929", idle2 = "616158929", walk = "616168557", run = "616163682", jump = "616161997", climb = "616156119", fall = "616157476" }, Superhero = { idle1 = "616111295", idle2 = "616113536", walk = "616122287", run = "616117076", jump = "616115533", climb = "616104706", fall = "616108001" }, Levitation = { idle1 = "742637893", idle2 = "742638445", walk = "742639220", run = "742638267", jump = "742637942", climb = "742636889", fall = "742637151" }, Pirate = { idle1 = "750781874", idle2 = "750782770", walk = "750785693", run = "750783738", jump = "750782230", climb = "750779899", fall = "750780242" } }
-
 local animationNames = {} for name, _ in pairs(animations) do table.insert(animationNames, name) end
-
 Library.addDropdown(tab3, "Animations", "Select one", animationNames, function(selected) local player = game.Players.LocalPlayer if not player.Character or not player.Character:FindFirstChild("Animate") then return end
 
 local Animate = player.Character.Animate
@@ -1718,13 +1845,11 @@ if anim then
     Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=" .. anim.climb
     Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=" .. anim.fall
 end
-
 end)
 
 getgenv().ReplicatedStorage, getgenv().StarterGui, getgenv().Players, getgenv().toggleNotifications, getgenv().notificationsSent, lastRoles = game:GetService("ReplicatedStorage"), game:GetService("StarterGui"), game:GetService("Players"), false, { Murderer = false, Sheriff = false }, {}
 
 local localPlayer, searching = getgenv().Players.LocalPlayer, false
-
 local function sendNotification(player, role)
     if not getgenv().toggleNotifications then return end
     local playerObj, thumb = getgenv().Players:FindFirstChild(player), ""
@@ -1732,7 +1857,6 @@ local function sendNotification(player, role)
     getgenv().StarterGui:SetCore("SendNotification", { Title = "Player Detected", Text = player .. " is " .. role, Icon = thumb, Duration = 5 })
     getgenv().notificationsSent[role], lastRoles[player] = true, role
 end
-
 local function getRoles()
     if not getgenv().toggleNotifications then return end
     local success, roles = pcall(function() return getgenv().ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer() end)
@@ -1892,6 +2016,8 @@ local function addHighlight(knife)
         highlight.FillColor = Color3.fromRGB(0, 255, 255)
         highlight.OutlineColor = Color3.fromRGB(0, 255, 255)
         highlight.FillTransparency = 0
+        highlight.ZIndex = 5  
+        highlight.AlwaysOnTop = true
         highlight.OutlineTransparency = 0
         highlight.Parent = knife
     end
@@ -1905,7 +2031,6 @@ end)
 
 Library.addToggle(tab3, "See Thrown Knife", "", false, function(state)
     enabled = state
-
     if not enabled then
         for _, knife in ipairs(workspace:GetChildren()) do
             if knife:IsA("Model") and knife.Name == "ThrowingKnife" then
@@ -1935,7 +2060,6 @@ local function handleTrap(child)
                 billboard.Size = UDim2.new(0, 100, 0, 50)
                 billboard.Adornee = child:FindFirstChild("PrimaryPart") or child
                 billboard.AlwaysOnTop = true
-
                 local text = Instance.new("TextLabel", billboard)
                 text.Size = UDim2.new(1, 0, 1, 0)
                 text.Text = "Trap"
@@ -2004,9 +2128,6 @@ Library.addToggle(tab3, "See Traps", "Ver trampas", false, function(state)
 end)
 
 Library.addLabel(tab3, "round time")
-
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local CoreGui = game:GetService("CoreGui")
 local state, timerThread = false, nil
 
 local function createGui()
@@ -2343,7 +2464,6 @@ getgenv().player, getgenv().coreGui, getgenv().autoGrabThread, getgenv().auraThr
 Library.addToggle(tab4, "Bring Gun/(button)", "", false, function(state)
     local existingGui = coreGui:FindFirstChild("TPGUN")
     if existingGui then existingGui:Destroy() end
-
     if state then
         local screenGui = Instance.new("ScreenGui")
         screenGui.Name = "TPGUN"
@@ -2379,7 +2499,6 @@ Library.addToggle(tab4, "Auto grab Gun", "Auto recoger pistola caida", false, fu
         task.cancel(autoGrabThread)
         autoGrabThread = nil
     end
-
     if state then
         autoGrabThread = task.spawn(function()
             local function hasKnife()
@@ -2449,7 +2568,7 @@ Library.addToggle(tab4, "View Drop Gun", "Ver Pistola caida", false, function(st
     end
 end)
 
-Library.addButton(tab12, "it Make you invisible", "Te hace invisible", function()
+Library.addButton(tab4, "it Make you invisible", "Te hace invisible", function()
     loadstring(game:HttpGet('https://pastebin.com/raw/GgYsFfDK'))()
 end)
 
@@ -3126,10 +3245,7 @@ Library.addButton(tab6, "Anchor character", "Anclar el personaje", function()
     end
 end)
 
-local plrs = game:GetService("Players")
-local rs = game:GetService("RunService")
-local lp = plrs.LocalPlayer
-
+local lp,rs,plrs=game:GetService("Players").LocalPlayer,game:GetService("RunService"),game:GetService("Players")
 local antiFling = false
 
 rs.RenderStepped:Connect(function()
@@ -3396,12 +3512,18 @@ Library.addButton(tab8, "Delete Config", "Eliminar la configuración actual", fu
     end
 end)
 
-local RunService = game:GetService("RunService")
 local running = false
 local fps = 120
 
 Library.addToggle(tab8, "Activate loop fps", "Activar loop fps", false, function(state)
     running = state
+    if state then
+        task.spawn(function()
+            while running do
+                task.wait(1 / fps)
+            end
+        end)
+    end
 end)
 
 Library.addTextbox(tab8, "FPS Limit", "Ajusta los FPS", "120", function(inputText)
@@ -3409,11 +3531,6 @@ Library.addTextbox(tab8, "FPS Limit", "Ajusta los FPS", "120", function(inputTex
     if numValue then
         fps = numValue
         setfpscap(fps)
-    end
-end)
-
-RunService.Heartbeat:Connect(function()
-    if running then
     end
 end)
 
