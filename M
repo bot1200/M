@@ -4,13 +4,9 @@ local TeleportService = game:GetService("TeleportService")
 local CoreGui = game:GetService("CoreGui")
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot1200/Li/refs/heads/main/Li", true))()
 
-local allowedUserIds = {
-    2784663867, 1478666809, 1097473426, 987654321, 
-    2452591000, 6010246054, 4559416757, 5032890679, 
-    7922739638, 1234567890, 1122334455, 4229542697, 5837498134
-}
+local allowedUserIds = {2784663867, 87654321}
 
-local ui = Library:CreateUI("Murder Mystery 2 / 105", "By CapybaraScript")
+local ui = Library:CreateUI("Murder Mystery 2 / 110", "By CapybaraScript")
 
 getgenv().tab11 = ui:AddTab(false, "INFO")
 getgenv().tab1 = ui:AddTab(false, "Combat")
@@ -660,7 +656,11 @@ end
 
 button.MouseButton1Click:Connect(function()
     if EquipGun() then
-        shootAtKnifePlayer()
+        for i = 1, 5 do
+            task.spawn(function()
+                shootAtKnifePlayer()
+            end)
+        end
     end
 end)
 end)
@@ -1205,11 +1205,11 @@ print("El radio ahora es: " .. getgenv().throwingKnifeReach)
 end
 end)
 
-Library.addSlider(tab2, "Throwing Knife Reach", 1, 255, 8, getgenv().throwingKnifeReach, function(value)
+Library.addSlider(tab2, "Throwing Knife Reach", 1, 255, 12, getgenv().throwingKnifeReach, function(value)
 getgenv().throwingKnifeReach = tonumber(value)
 end)
 
-game:GetService("RunService").Heartbeat:Connect(function()
+game:GetService("RunService").RenderStepped:Connect(function()
 if getgenv().throwingKnifeActive then
 local localPlayer = game.Players.LocalPlayer
 if localPlayer and localPlayer.Character then
@@ -1441,26 +1441,31 @@ local function applyESPName(player, color)
         local head = character:FindFirstChild("Head")
         if head then
             local gui = head:FindFirstChild("BillboardGui")
+            local textLabel
             if not gui then
                 gui = Instance.new("BillboardGui")
                 gui.Parent = head
                 gui.Adornee = head
                 gui.Size = UDim2.new(0, 65, 0, 65)
-            gui.StudsOffset = Vector3.new(0, 4, 0)
+                gui.StudsOffset = Vector3.new(0, 4, 0)
                 gui.AlwaysOnTop = true
                 gui.ResetOnSpawn = false
                 gui.Enabled = true
-                local textLabel = Instance.new("TextLabel")
+                textLabel = Instance.new("TextLabel")
                 textLabel.Parent = gui
-                textLabel.Size = UDim2.new(0, 65, 0, 65)  
+                textLabel.Size = UDim2.new(0, 65, 0, 65)
                 textLabel.BackgroundTransparency = 1
                 textLabel.TextScaled = true
-                textLabel.TextColor3 = color
                 textLabel.Text = player.Name
                 textLabel.TextSize = 11
+            else
+                textLabel = gui:FindFirstChildOfClass("TextLabel")
+            end
+            if textLabel then
+                textLabel.TextColor3 = color
+            end
         end
     end
-end
 end
 
 local function clearESPName()
@@ -1726,10 +1731,6 @@ Library.addToggle(tab3, "ESP Tracer", "", false, function(state)
         tracerDrawings = {}
     end
 end)
-
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 local LP = Players.LocalPlayer
 local scriptEnabled = false
@@ -2013,12 +2014,12 @@ local enabled = false
 local function addHighlight(knife)
     if enabled and not knife:FindFirstChild("Highlight") then
         local highlight = Instance.new("Highlight")
-        highlight.FillColor = Color3.fromRGB(0, 255, 255)
-        highlight.OutlineColor = Color3.fromRGB(0, 255, 255)
+        highlight.FillColor = Color3.fromRGB(0, 200, 160)
+highlight.OutlineColor = Color3.fromRGB(0, 200, 160)
         highlight.FillTransparency = 0
-        highlight.ZIndex = 5  
-        highlight.AlwaysOnTop = true
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop  -- Se muestra a través de paredes.
         highlight.OutlineTransparency = 0
+        highlight.Adornee = knife
         highlight.Parent = knife
     end
 end
@@ -2032,7 +2033,7 @@ end)
 Library.addToggle(tab3, "See Thrown Knife", "", false, function(state)
     enabled = state
     if not enabled then
-        for _, knife in ipairs(workspace:GetChildren()) do
+        for _, knife in ipairs(workspace:GetDescendants()) do
             if knife:IsA("Model") and knife.Name == "ThrowingKnife" then
                 local highlight = knife:FindFirstChild("Highlight")
                 if highlight then
