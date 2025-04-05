@@ -6,7 +6,7 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot12
 
 local allowedUserIds = {2784663867, 87654321}
 
-local ui = Library:CreateUI("Murder Mystery 2 / 110", "By CapybaraScript")
+local ui = Library:CreateUI("Murder Mystery 2 / 115", "By CapybaraScript")
 
 getgenv().tab11 = ui:AddTab(false, "INFO")
 getgenv().tab1 = ui:AddTab(false, "Combat")
@@ -1967,48 +1967,6 @@ Library.addToggle(tab3, "ESP Gun Drop", "Esp Pistola caida", false, function(st)
     end  
 end)
 
-local pl = game:GetService("Players").LocalPlayer
-local gui = game:GetService("StarterGui")
-local ws = game:GetService("Workspace")
-
-getgenv().GunDropn = false
-Library.addToggle(tab3, "GunDrop Notifier", "pistola caida notificador", false, function(state)
-    getgenv().GunDropn = state
-    if state then
-        for _, v in ipairs(ws:GetDescendants()) do
-            local gunDrop = v:FindFirstChild("GunDrop")
-            if gunDrop then
-                notifyGun(gunDrop)
-            end
-        end
-    end
-end)
-
-local notif = {}
-local function notifyGun(gun)
-    if not getgenv().GunDropn or notif[gun] then return end
-    local char = pl.Character
-    if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-
-    local d = (gun.Position - hrp.Position).Magnitude
-    gui:SetCore("SendNotification", {
-        Title = "Gun Drop Found!",
-        Text = string.format("Gun found at %.2f studs", d),
-        Duration = 5
-    })
-    notif[gun] = true
-end
-
-ws.DescendantAdded:Connect(function(descendant)
-    local gunDrop = descendant:FindFirstChild("GunDrop")
-    if gunDrop then
-        task.wait(0.1)
-        notifyGun(gunDrop)
-    end
-end)
-
 local enabled = false
 
 local function addHighlight(knife)
@@ -3177,50 +3135,35 @@ end)
 local connection
 Library.addToggle(tab5, "magnet coin", "Monedas imán", false, function(state)
     local player = game.Players.LocalPlayer
-    local rootPart
     local sizeMultiplier = 4.5
-    local affectedCoins = {}
 
-    local function updateRootPart()
-        local character = player.Character or player.CharacterAdded:Wait()
-        rootPart = character:WaitForChild("HumanoidRootPart")
+    local function changeCoinSize(coin, size)
+        if coin:IsA("BasePart") and coin.Name == "Coin_Server" then
+            coin.Size = size
+        end
     end
 
-    local function updateCoins()
-        if not rootPart then return end
-        
+    local function updateCoins(size)
         for _, model in ipairs(workspace:GetChildren()) do
             local coinContainer = model:FindFirstChild("CoinContainer")
             if coinContainer then
                 for _, coin in ipairs(coinContainer:GetChildren()) do
-                    if coin:IsA("BasePart") and coin.Name == "Coin_Server" then
-                        local distance = (rootPart.Position - coin.Position).Magnitude
-
-                        if state and distance < 15 then
-                            if not affectedCoins[coin] then
-                                coin.Size = Vector3.new(sizeMultiplier, sizeMultiplier, sizeMultiplier)
-                                affectedCoins[coin] = true
-                            end
-                        elseif not state and affectedCoins[coin] then
-                            coin.Size = Vector3.new(1, 1, 1)
-                            affectedCoins[coin] = nil
-                        end
-                    end
+                    changeCoinSize(coin, size)
                 end
             end
         end
     end
 
     if state then
-        updateRootPart()
-        player.CharacterAdded:Connect(updateRootPart)
-        connection = game:GetService("RunService").Heartbeat:Connect(updateCoins)
+        updateCoins(Vector3.new(sizeMultiplier, sizeMultiplier, sizeMultiplier))
+        connection = game.Workspace.DescendantAdded:Connect(function(coin)
+            changeCoinSize(coin, Vector3.new(sizeMultiplier, sizeMultiplier, sizeMultiplier))
+        end)
     else
+        updateCoins(Vector3.new(1, 1, 1))
         if connection then
             connection:Disconnect()
-            connection = nil
         end
-        affectedCoins = {}
     end
 end)
 
@@ -3552,6 +3495,36 @@ Library.addToggle(tab8, "Anti afk", "", getgenv().antiAfkEnabled, function(state
         if idledConnection then
             idledConnection:Disconnect()
         end
+    end
+end)
+
+local RunService = game:GetService("RunService")
+getgenv().antisteal = true
+local heartbeatConnection
+
+local function startAntisteal()
+    if heartbeatConnection then
+        heartbeatConnection:Disconnect()
+    end
+    heartbeatConnection = RunService.Heartbeat:Connect(function()
+        game:GetService("ReplicatedStorage"):WaitForChild("Trade"):WaitForChild("DeclineTrade"):FireServer()
+        game:GetService("ReplicatedStorage"):WaitForChild("Trade"):WaitForChild("DeclineRequest"):FireServer()
+    end)
+end
+
+local function stopAntisteal()
+    if heartbeatConnection then
+        heartbeatConnection:Disconnect()
+        heartbeatConnection = nil
+    end
+end
+
+Library.addToggle(tab8, "anti-steal (beta)", "", true, function(state)
+    getgenv().antisteal = state
+    if state then
+        startAntisteal()
+    else
+        stopAntisteal()
     end
 end)
 
