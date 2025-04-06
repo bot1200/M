@@ -6,7 +6,7 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot12
 
 local allowedUserIds = {2784663867, 87654321}
 
-local ui = Library:CreateUI("Murder Mystery 2 / 130", "By CapybaraScript")
+local ui = Library:CreateUI("Murder Mystery 2 / 135", "By CapybaraScript")
 
 getgenv().tab11 = ui:AddTab(false, "INFO")
 getgenv().tab1 = ui:AddTab(false, "Combat")
@@ -2865,8 +2865,73 @@ Library.addToggle(tab4, "View Drop Gun", "Ver Pistola caida", getgenv().savedCon
     end
 end)
 
-Library.addButton(tab4, "it Make you invisible", "Te hace invisible", function()
-    loadstring(game:HttpGet('https://pastebin.com/raw/GgYsFfDK'))()
+local invs = false
+local transparencyLoop
+
+Library.addToggle(tab4, "fe Invisible", "", false, function(state)
+	invs = state
+local player, character, savedpos, savedCam = game.Players.LocalPlayer, game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait(), nil, workspace.CurrentCamera.CFrame
+	local function makeTransparent(char)
+		for _, part in ipairs(char:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.LocalTransparencyModifier = 0.5
+			end
+		end
+	end
+
+	local function makeVisible(char)
+		for _, part in ipairs(char:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.LocalTransparencyModifier = 0
+			end
+		end
+	end
+
+	local function startTransparencyLoop(char)
+		if transparencyLoop then
+			transparencyLoop:Disconnect()
+		end
+		transparencyLoop = char.DescendantAdded:Connect(function(desc)
+			if desc:IsA("BasePart") then
+				desc.LocalTransparencyModifier = 0.5
+			end
+		end)
+		task.spawn(function()
+			while invs and char.Parent do
+				makeTransparent(char)
+				task.wait(0.7)
+			end
+		end)
+	end
+	if invs then
+		savedpos = character.HumanoidRootPart.CFrame
+		character:MoveTo(Vector3.new(-25.95, 84, 3537.55))
+		task.wait(0.10)
+local Seat = Instance.new("Seat", workspace); Seat.Anchored = false; Seat.CanCollide = false; Seat.Name = "invischair"; Seat.Transparency = 1; Seat.Position = Vector3.new(-25.95, 84, 3537.55)
+local Weld = Instance.new("Weld", Seat); Weld.Part0 = Seat; Weld.Part1 = character.HumanoidRootPart
+		task.wait()
+		character.HumanoidRootPart.CFrame = savedpos
+		workspace.CurrentCamera.CFrame = savedCam
+		makeTransparent(character)
+		startTransparencyLoop(character)
+	else
+		local invisChair = workspace:FindFirstChild("invischair")
+		if invisChair then
+			invisChair:Destroy()
+		end
+		if transparencyLoop then
+			transparencyLoop:Disconnect()
+			transparencyLoop = nil
+		end
+		makeVisible(character)
+	end
+end)
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
+	if invs then
+		makeTransparent(character)
+		startTransparencyLoop(character)
+	end
 end)
 
 getgenv().p = game.Players.LocalPlayer
