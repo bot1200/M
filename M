@@ -268,6 +268,18 @@ Library.addToggle(tab13, "activate bang", "Start", false, function(state)
     end
 end)
 
+Library.addButton(tab13, "fling all", "Fling a todos", function()
+    loadstring(game:HttpGet("https://pastebin.com/raw/HpNf0TYX"))()
+end)
+
+Library.addButton(tab13, "Fling murderer", "", function()
+    loadstring(game:HttpGet("https://pastebin.com/raw/YKTYp5Dn"))()
+end)
+
+Library.addButton(tab13, "Fling sheriff", "", function()
+    loadstring(game:HttpGet("https://pastebin.com/raw/Lx8UkvVv"))()
+end)
+
 Library.addSection(tab12, "PREMIUM")
 
 
@@ -568,6 +580,155 @@ OldNameCall = hookmetamethod(game, "__namecall", function(Object, ...)
     end
 
     return OldNameCall(Object, unpack(Arguments))
+end)
+
+Library.addButton(tab1, "teleport and shoot the Murderer", "teletransporte y disparar al asesino", function()
+local coreGui = game:GetService("CoreGui")
+if coreGui:FindFirstChild("tpshoot") then
+    return
+end
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local getRandomPlayer
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "tpshoot"
+screenGui.Parent = coreGui
+
+local button = Instance.new("TextButton")
+button.Name = "Button"
+button.Size = UDim2.new(0, 60, 0, 60)
+button.Position = UDim2.new(0.85, -50, 0.15, -50)
+button.Text = "Tp Shoot"
+button.Font = Enum.Font.Gotham
+button.TextSize = 10
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.BackgroundColor3 = Color3.fromRGB(138, 43, 250)
+button.BackgroundTransparency = 0.7
+button.Draggable = true
+button.BorderSizePixel = 0
+button.AutoButtonColor = true
+button.Parent = screenGui
+
+local uicorner = Instance.new("UICorner")
+uicorner.CornerRadius = UDim.new(0, 3)
+uicorner.Parent = button
+
+local function getCharacterRootPart(character)
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        return character.HumanoidRootPart
+    end
+    return nil
+end
+
+local function EquipGun()
+    local gunInBackpack = LocalPlayer.Backpack:FindFirstChild("Gun")
+    if gunInBackpack then
+        gunInBackpack.Parent = LocalPlayer.Character
+        
+        local character = LocalPlayer.Character
+        local rootPart = getCharacterRootPart(character)
+        if not rootPart then
+            warn("No se encontró HumanoidRootPart")
+            return false
+        end
+        
+        if not character.PrimaryPart then
+            character.PrimaryPart = rootPart
+        end
+
+        local originalPosition = rootPart.Position
+        
+        local target = getRandomPlayer()
+        if target and target.Character then
+            local targetRoot = getCharacterRootPart(target.Character)
+            if targetRoot then
+                local backwardPosition = targetRoot.Position - targetRoot.CFrame.LookVector * 3
+                character:SetPrimaryPartCFrame(CFrame.new(backwardPosition))
+                
+                task.delay(.7, function()
+                    if character and character.PrimaryPart then
+                        character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
+                    end
+                end)
+            end
+        end
+
+        task.delay(.4, function()
+            if gunInBackpack.Parent == character then
+                gunInBackpack.Parent = LocalPlayer.Backpack
+            end
+        end)
+        
+        return true
+    end
+    return false
+end
+
+local function hasKnife(player)
+    if player.Character and player.Character:FindFirstChild("Knife") and player.Character:FindFirstChild("Knife"):IsA("Tool") then
+        return true
+    end
+    local backpack = player:FindFirstChild("Backpack")
+    if backpack and backpack:FindFirstChild("Knife") and backpack:FindFirstChild("Knife"):IsA("Tool") then
+        return true
+    end
+    return false
+end
+
+getRandomPlayer = function()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and hasKnife(player) then
+            return player
+        end
+    end
+    return nil
+end
+
+local function shootAtPlayer()
+    local target = getRandomPlayer()
+    if target and target.Character then
+        local targetRoot = getCharacterRootPart(target.Character)
+        if targetRoot then
+            local forwardVector = targetRoot.CFrame.LookVector
+            local predictionIntervalHorizontal = 0.1
+            local predictionIntervalVertical = -1
+            local adjustmentFactor = forwardVector * 0.3
+
+            local predictedPosition = targetRoot.Position
+                + targetRoot.AssemblyLinearVelocity * predictionIntervalHorizontal
+                + Vector3.new(0, predictionIntervalVertical, 0)
+                + adjustmentFactor
+
+            local args = {
+                [1] = 1,
+                [2] = predictedPosition,
+                [3] = "AH2"
+            }
+
+            local character = LocalPlayer.Character
+            if character then
+                local gun = character:FindFirstChild("Gun")
+                if gun and gun:FindFirstChild("KnifeLocal") and gun.KnifeLocal:FindFirstChild("CreateBeam") then
+                    gun.KnifeLocal.CreateBeam.RemoteFunction:InvokeServer(unpack(args))
+                end
+            end
+        end
+    end
+end
+
+button.MouseButton1Click:Connect(function()
+    if EquipGun() then
+        for i = 1, 5 do
+            task.spawn(function()
+                task.wait(.3)
+                shootAtPlayer()
+            end)
+        end
+    end
+end)
 end)
 
 Library.addLabel(tab1, "Auto shoot to murderer")
@@ -1177,10 +1338,6 @@ Library.addToggle(tab1, "Dodge Throw knife", "Esquivar cuchillo lanzado", false,
 end)
 
 toggleDetection()
-
-Library.addButton(tab1, "teleport and shoot the Murderer", "teletransporte y disparar al asesino", function()
-
-end)
 Library.addSection(tab2, "Hitbox Expander")
 local set = {
     HitboxSize = 10,
@@ -1973,16 +2130,32 @@ Library.addToggle(tab3, "Instant role", "", false, function(state)
     scriptEnabled = state
 
     if state then
-        local role = getPlayerRole()
-        if role then
-            showRoleLabel(role)
-        end
+        task.spawn(function()
+            local playerGui = LP:WaitForChild("PlayerGui")
+            local mainGui = playerGui:WaitForChild("MainGUI")
+
+            local role = getPlayerRole()
+            if role then
+                showRoleLabel(role)
+            end
+
+            if not heartbeatConn then
+                heartbeatConn = RunService.Heartbeat:Connect(heartbeatCheck)
+            end
+        end)
     else
-        local playerGui = LP:WaitForChild("PlayerGui")
-        local mainGui = playerGui:WaitForChild("MainGUI")
-        local roleLabel = mainGui:FindFirstChild("RoleLabel")
-        if roleLabel then
-            roleLabel:Destroy()
+        if heartbeatConn then
+            heartbeatConn:Disconnect()
+            heartbeatConn = nil
+        end
+
+        local playerGui = LP:FindFirstChild("PlayerGui")
+        local mainGui = playerGui and playerGui:FindFirstChild("MainGUI")
+        if mainGui then
+            local roleLabel = mainGui:FindFirstChild("RoleLabel")
+            if roleLabel then
+                roleLabel:Destroy()
+            end
         end
     end
 end)
@@ -2049,90 +2222,83 @@ Library.addToggle(tab3, "Role Notification", "notificación de roles", false, fu
     if state then task.spawn(startSearching) else getgenv().notificationsSent, lastRoles = { Murderer = false, Sheriff = false }, {} end
 end)
 Library.addLabel(tab3, "Gun Stuff")
-Library.addToggle(tab3, "ESP Gun Drop", "Esp Pistola caida", false, function(st)
+getgenv().gesp = getgenv().savedConfig.gunESP or false
+getgenv().enabled = getgenv().savedConfig.knifeESP or false
+
+Library.addToggle(tab3, "ESP Gun Drop", "Esp Pistola caida", getgenv().gesp, function(st)
     getgenv().gesp = st
+    getgenv().savedConfig.gunESP = st
+    getgenv().saveConfig(getgenv().savedConfig)
     
-    local function createLbl(obj)  
-        local plr = game:GetService("Players").LocalPlayer  
-        local dist = (obj.Position - plr.Character.HumanoidRootPart.Position).Magnitude  
-        if not obj:FindFirstChild("GunLabel") then  
-            local lbl = Instance.new("BillboardGui")  
-            lbl.Name = "GunLabel"  
-            lbl.Adornee = obj  
-            lbl.Size = UDim2.new(0, 200, 0, 50)  
-            lbl.StudsOffset = Vector3.new(0, 3, 0)  
-            lbl.AlwaysOnTop = true  
-            lbl.Parent = obj  
-            local txtLbl = Instance.new("TextLabel")  
-            txtLbl.Size = UDim2.new(1, 0, 1, 0)  
-            txtLbl.BackgroundTransparency = 1  
-            txtLbl.TextStrokeTransparency = 0.6  
-            txtLbl.TextSize = 10
-            txtLbl.ZIndex = 5  
-            txtLbl.Parent = lbl  
-            txtLbl.Text = string.format("Gun Here! [%d studs]", math.floor(dist))  
-            txtLbl.TextColor3 = Color3.fromRGB(255, 0, 255)  
-        else  
-            local txtLbl = obj.GunLabel:FindFirstChildOfClass("TextLabel")  
-            if txtLbl then  
-                txtLbl.Text = string.format("Gun Here! [%d studs]", math.floor(dist))  
-            end  
-        end  
-    end  
+    local function createLbl(obj)
+        local plr = game:GetService("Players").LocalPlayer
+        local dist = (obj.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+        if not obj:FindFirstChild("GunLabel") then
+            local lbl = Instance.new("BillboardGui")
+            lbl.Name, lbl.Adornee, lbl.Size, lbl.StudsOffset, lbl.AlwaysOnTop, lbl.Parent = "GunLabel", obj, UDim2.new(0, 200, 0, 50), Vector3.new(0, 3, 0), true, obj
+            local txtLbl = Instance.new("TextLabel")
+            txtLbl.Size = UDim2.new(1, 0, 1, 0)
+            txtLbl.BackgroundTransparency, txtLbl.TextStrokeTransparency, txtLbl.TextSize, txtLbl.ZIndex, txtLbl.Parent = 1, 0.6, 10, 5, lbl
+            txtLbl.Text = string.format("Gun Here! [%d studs]", math.floor(dist))
+            txtLbl.TextColor3 = Color3.fromRGB(255, 0, 255)
+        else
+            local txtLbl = obj.GunLabel:FindFirstChildOfClass("TextLabel")
+            if txtLbl then
+                txtLbl.Text = string.format("Gun Here! [%d studs]", math.floor(dist))
+            end
+        end
+    end
+    
+    local function removeHLsAndLbls()
+        for _, v in pairs(workspace:GetChildren()) do
+            local gd = v:FindFirstChild("GunDrop")
+            if gd then
+                local hl = gd:FindFirstChild("Highlight")
+                if hl then
+                    hl:Destroy()
+                end
+                local lbl = gd:FindFirstChild("GunLabel")
+                if lbl then
+                    lbl:Destroy()
+                end
+            end
+        end
+    end
 
-    local function removeHLsAndLbls()  
-        for _, v in pairs(workspace:GetChildren()) do  
-            local gd = v:FindFirstChild("GunDrop")  
-            if gd then  
-                local hl = gd:FindFirstChild("Highlight")  
-                if hl then  
-                    hl:Destroy()  
-                end  
-                local lbl = gd:FindFirstChild("GunLabel")  
-                if lbl then  
-                    lbl:Destroy()  
-                end  
-            end  
-        end  
-    end  
-
-    local runConn  
-    if st then  
-        runConn = game:GetService("RunService").Heartbeat:Connect(function()  
+    local runConn
+    if st then
+        runConn = game:GetService("RunService").Heartbeat:Connect(function()
             if getgenv().gesp then
-                for _, v in pairs(workspace:GetChildren()) do  
-                    local gd = v:FindFirstChild("GunDrop")  
-                    if gd then  
-                        if not gd:FindFirstChild("Highlight") then  
-                            local hl = Instance.new("Highlight")  
-                            hl.Parent = gd  
-                            hl.FillTransparency = 0.7  
-                            hl.FillColor = Color3.fromRGB(148, 0, 211)  
-                            hl.OutlineColor = Color3.fromRGB(255, 0, 255)  
-                        end  
-                        createLbl(gd)  
-                    end  
-                end  
-            end  
-        end)  
-    else  
-        if runConn then  
-            runConn:Disconnect()  
-        end  
-        removeHLsAndLbls()  
-        return
-    end  
+                for _, v in pairs(workspace:GetChildren()) do
+                    local gd = v:FindFirstChild("GunDrop")
+                    if gd then
+                        if not gd:FindFirstChild("Highlight") then
+                            local hl = Instance.new("Highlight")
+                            hl.Parent = gd
+                            hl.FillTransparency = 0.7
+                            hl.FillColor = Color3.fromRGB(148, 0, 211)
+                            hl.OutlineColor = Color3.fromRGB(255, 0, 255)
+                        end
+                        createLbl(gd)
+                    end
+                end
+            end
+        end)
+    else
+        if runConn then
+            runConn:Disconnect()
+        end
+        removeHLsAndLbls()
+    end
 end)
 
-local enabled = false
-
 local function addHighlight(knife)
-    if enabled and not knife:FindFirstChild("Highlight") then
+    if getgenv().enabled and not knife:FindFirstChild("Highlight") then
         local highlight = Instance.new("Highlight")
         highlight.FillColor = Color3.fromRGB(0, 200, 160)
-highlight.OutlineColor = Color3.fromRGB(0, 200, 160)
+        highlight.OutlineColor = Color3.fromRGB(0, 200, 160)
         highlight.FillTransparency = 0
-        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop  -- Se muestra a través de paredes.
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
         highlight.OutlineTransparency = 0
         highlight.Adornee = knife
         highlight.Parent = knife
@@ -2140,14 +2306,17 @@ highlight.OutlineColor = Color3.fromRGB(0, 200, 160)
 end
 
 workspace.DescendantAdded:Connect(function(descendant)
-    if enabled and descendant:IsA("Model") and descendant.Name == "ThrowingKnife" then
+    if getgenv().enabled and descendant:IsA("Model") and descendant.Name == "ThrowingKnife" then
         addHighlight(descendant)
     end
 end)
 
-Library.addToggle(tab3, "See Thrown Knife", "", false, function(state)
-    enabled = state
-    if not enabled then
+Library.addToggle(tab3, "See Thrown Knife", "", getgenv().enabled, function(state)
+    getgenv().enabled = state
+    getgenv().savedConfig.knifeESP = state
+    getgenv().saveConfig(getgenv().savedConfig)
+
+    if not state then
         for _, knife in ipairs(workspace:GetDescendants()) do
             if knife:IsA("Model") and knife.Name == "ThrowingKnife" then
                 local highlight = knife:FindFirstChild("Highlight")
@@ -2158,12 +2327,12 @@ Library.addToggle(tab3, "See Thrown Knife", "", false, function(state)
         end
     end
 end)
-
 Library.addLabel(tab3, "Traps")
+getgenv().removeTrap = getgenv().savedConfig.removeTrap or false
+getgenv().seeTraps = getgenv().savedConfig.seeTraps or false
+
 local Players = game:GetService("Players")
 local localPlayer = Players.LocalPlayer
-getgenv().removeTrap = false
-getgenv().seeTraps = false
 
 local function handleTrap(child)
     if child:IsA("Model") and child.Name == "Trap" then
@@ -2220,13 +2389,17 @@ local function updateAllTraps()
     end
 end
 
-Library.addToggle(tab3, "Remove Traps", "destruir trampas", false, function(state)
+Library.addToggle(tab3, "Remove Traps", "destruir trampas", getgenv().removeTrap, function(state)
     getgenv().removeTrap = state
+    getgenv().savedConfig.removeTrap = state
+    getgenv().saveConfig(getgenv().savedConfig)
     updateAllTraps()
 end)
 
-Library.addToggle(tab3, "See Traps", "Ver trampas", false, function(state)
+Library.addToggle(tab3, "See Traps", "Ver trampas", getgenv().seeTraps, function(state)
     getgenv().seeTraps = state
+    getgenv().savedConfig.seeTraps = state
+    getgenv().saveConfig(getgenv().savedConfig)
     updateAllTraps()
     if not state then
         for _, player in pairs(Players:GetPlayers()) do
@@ -2282,7 +2455,7 @@ local args = {
 game:GetService("Players").LocalPlayer.Character.Trap.Activate:FireServer(unpack(args))
 end)
 Library.addLabel(tab3, "round time")
-local state, timerThread = false, nil
+local state, timerThread = getgenv().savedConfig.showTimerGame or false, nil
 
 local function createGui()
     if CoreGui:FindFirstChild("TimerGui") then CoreGui.TimerGui:Destroy() end
@@ -2317,8 +2490,11 @@ local function updateTimer(text)
     end
 end
 
-Library.addToggle(tab3, "Show Timer Game", "Ver tiempo de la ronda", false, function(toggleState)
+Library.addToggle(tab3, "Show Timer Game", "Ver tiempo de la ronda", state, function(toggleState)
     state = toggleState
+    getgenv().savedConfig.showTimerGame = toggleState
+    getgenv().saveConfig(getgenv().savedConfig)
+
     if state then 
         timerThread = task.spawn(function() updateTimer(createGui()) end)
     else
@@ -2432,49 +2608,6 @@ Library.addButton(tab3, "Return to my camera", "regresar a mi cámara", function
     end
 end)
 
-local plr, rs = game.Players.LocalPlayer, game:GetService("RunService")
-local spd, maxSpd, acc, dec, landDec, landSpd, landDur = 3, 15, 0.2, 0.1, 0.05, 2, 0.3
-local active, conn = false
-maxSpd = savedConfig.maxSpd or maxSpd
-
-local function setup(chr)
-    local hum = chr:WaitForChild("Humanoid")
-    local slide, time = false, 0
-    if conn then conn:Disconnect() end
-    conn = rs.Heartbeat:Connect(function(dt)
-        local state, dir = hum:GetState(), hum.MoveDirection
-        if state == Enum.HumanoidStateType.Freefall and active then
-            spd = dir.Magnitude > 0 and math.min(spd + acc, maxSpd) or math.max(spd - dec, 0)
-            chr:TranslateBy(dir * spd * dt)
-        elseif state == Enum.HumanoidStateType.Landed then
-            if not slide then spd, time, slide = landSpd, 0, true end
-        elseif slide then
-            if time < landDur then
-                chr:TranslateBy(dir * spd * dt)
-                spd, time = math.max(spd - landDec, 0), time + dt
-            else slide = false end
-        else spd = math.max(spd - dec, 0) end
-    end)
-end
-
-plr.CharacterAdded:Connect(setup)
-if plr.Character then setup(plr.Character) end
-
-Library.addToggle(tab4, "Fake speed glitch", "", savedConfig.fakeSpeedGlitch or false, function(state)
-    active = state
-    savedConfig.fakeSpeedGlitch = state
-    getgenv().saveConfig(savedConfig)
-end)
-
-Library.addTextbox(tab4, "Speed glitch adjust", "", tostring(maxSpd), function(inputText)
-    local num = tonumber(inputText)
-    if num and num > 0 then
-        maxSpd = num
-        savedConfig.maxSpd = maxSpd
-        getgenv().saveConfig(savedConfig)
-    end
-end)
-
 Library.addButton(tab4, "FAKE Fake bomb trick", "", function()
 local player = game:GetService("Players").LocalPlayer
 local coreGui, replicatedStorage = game:GetService("CoreGui"), game:GetService("ReplicatedStorage")
@@ -2554,14 +2687,6 @@ end
 local function w(h) task.wait(0.5) v(h) end
 if p.Character then v(p.Character) end
 p.CharacterAdded:Connect(w)
-end)
-
-Library.addButton(tab4, "Fling murderer", "", function()
-    loadstring(game:HttpGet("https://pastebin.com/raw/YKTYp5Dn"))()
-end)
-
-Library.addButton(tab4, "Fling sheriff", "", function()
-    loadstring(game:HttpGet("https://pastebin.com/raw/Lx8UkvVv"))()
 end)
 
 Library.addLabel(tab4, "Gun stuff")
@@ -3384,7 +3509,7 @@ Library.addToggle(tab6, "Anti fling", "", getgenv().antifling, function(state)
 end)
 
 getgenv().player = game.Players.LocalPlayer
-getgenv().toggleActive = false
+getgenv().toggleActive = getgenv().savedConfig.autoSecondLife or false
 getgenv().activated = false
 
 local function hasKnife(player)
@@ -3424,32 +3549,35 @@ local function notify(message)
 end
 
 local function monitorKnife()
-    while toggleActive do
+    while getgenv().toggleActive do
         local knifeDetected = false
         for _, otherPlayer in pairs(game.Players:GetPlayers()) do
             if hasKnife(otherPlayer) then
-                if not activated then
+                if not getgenv().activated then
                     activateGodMode()
                     notify("Second Life Script activated")
-                    activated = true
+                    getgenv().activated = true
                 end
                 knifeDetected = true
                 break
             end
         end
-        
-        if not knifeDetected and activated then
-            activated = false
+
+        if not knifeDetected and getgenv().activated then
+            getgenv().activated = false
         end
-        
+
         wait(1)
     end
 end
 
-Library.addToggle(tab6, "Auto Second Life", "Activate second life when a Knife is detected", false, function(state)
-    toggleActive = state
-    if toggleActive then
-        activated = false
+Library.addToggle(tab6, "Auto Second Life", "Activate second life when a Knife is detected", getgenv().toggleActive, function(state)
+    getgenv().toggleActive = state
+    getgenv().savedConfig.autoSecondLife = state
+    getgenv().saveConfig(getgenv().savedConfig)
+
+    if state then
+        getgenv().activated = false
         coroutine.wrap(monitorKnife)()
     end
 end)
@@ -3631,6 +3759,49 @@ Library.addToggle(tab6, "Infinite Jump", "salto infinito", getgenv().s.j.i, func
     end)
     getgenv().savedConfig.s = getgenv().s
     getgenv().saveConfig(getgenv().savedConfig)
+end)
+
+local plr, rs = game.Players.LocalPlayer, game:GetService("RunService")
+local spd, maxSpd, acc, dec, landDec, landSpd, landDur = 3, 15, 0.2, 0.1, 0.05, 2, 0.3
+local active, conn = false
+maxSpd = savedConfig.maxSpd or maxSpd
+
+local function setup(chr)
+    local hum = chr:WaitForChild("Humanoid")
+    local slide, time = false, 0
+    if conn then conn:Disconnect() end
+    conn = rs.Heartbeat:Connect(function(dt)
+        local state, dir = hum:GetState(), hum.MoveDirection
+        if state == Enum.HumanoidStateType.Freefall and active then
+            spd = dir.Magnitude > 0 and math.min(spd + acc, maxSpd) or math.max(spd - dec, 0)
+            chr:TranslateBy(dir * spd * dt)
+        elseif state == Enum.HumanoidStateType.Landed then
+            if not slide then spd, time, slide = landSpd, 0, true end
+        elseif slide then
+            if time < landDur then
+                chr:TranslateBy(dir * spd * dt)
+                spd, time = math.max(spd - landDec, 0), time + dt
+            else slide = false end
+        else spd = math.max(spd - dec, 0) end
+    end)
+end
+
+plr.CharacterAdded:Connect(setup)
+if plr.Character then setup(plr.Character) end
+
+Library.addToggle(tab6, "Fake speed glitch", "", savedConfig.fakeSpeedGlitch or false, function(state)
+    active = state
+    savedConfig.fakeSpeedGlitch = state
+    getgenv().saveConfig(savedConfig)
+end)
+
+Library.addTextbox(tab6, "Speed glitch adjust", "", tostring(maxSpd), function(inputText)
+    local num = tonumber(inputText)
+    if num and num > 0 then
+        maxSpd = num
+        savedConfig.maxSpd = maxSpd
+        getgenv().saveConfig(savedConfig)
+    end
 end)
 
 Library.addButton(tab7, "Get all the emotes", "obtener todos los emotes", function()
@@ -3832,10 +4003,6 @@ RunService.Heartbeat:Connect(function()
             end
         end
     end
-end)
-
-Library.addButton(tab8, "fling all", "Fling a todos", function()
-    loadstring(game:HttpGet("https://pastebin.com/raw/HpNf0TYX"))()
 end)
 
 Library.addButton(tab8, "ReJoin", "Re unirse", function()
