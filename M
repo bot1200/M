@@ -946,9 +946,9 @@ local function shootAtKnifePlayer()
         local targetRoot = getCharacterRootPart(target.Character)
         if targetRoot then
             local forwardVector = targetRoot.CFrame.LookVector
-            local predictionIntervalHorizontal = 0.2
+            local predictionIntervalHorizontal = 0.1
             local predictionIntervalVertical = -1
-            local adjustmentFactor = forwardVector * 0.7
+            local adjustmentFactor = forwardVector * 0.6
 
             local predictedPosition = targetRoot.Position 
                 + targetRoot.AssemblyLinearVelocity * predictionIntervalHorizontal 
@@ -4014,13 +4014,19 @@ local teleportService = game:GetService("TeleportService")
 teleportService:Teleport(game.PlaceId)
 end)
 
-getgenv().GuiService, getgenv().Players, getgenv().TeleportService = game:GetService("GuiService"), game:GetService("Players"), game:GetService("TeleportService")
-getgenv().player, getgenv().autoRejoin = Players.LocalPlayer, getgenv().savedConfig and getgenv().savedConfig.autorejoin or false
+local g = getgenv()
+g.GuiService = game:GetService("GuiService")
+g.Players = game:GetService("Players")
+g.TeleportService = game:GetService("TeleportService")
+g.player = g.Players.LocalPlayer
+g.autoRejoin = false
+g.teleportQueued = false
 
 local function onErrorMessageChanged(errorMessage)
-    if getgenv().autoRejoin and errorMessage and errorMessage ~= "" then
+    if g.autoRejoin and errorMessage and errorMessage ~= "" then
         print("Error detected: " .. errorMessage)
-        if getgenv().player then
+        if g.player and not g.teleportQueued then
+            g.teleportQueued = true
             local scriptContent = [[
                 local scriptToExecute = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot1200/M/refs/heads/main/M"))
                 if scriptToExecute then
@@ -4028,20 +4034,16 @@ local function onErrorMessageChanged(errorMessage)
                 end
             ]]
             local QueueTeleport = queue_on_teleport or (syn and syn.queue_on_teleport)
-            if QueueTeleport then QueueTeleport(scriptContent) end
-            getgenv().TeleportService:Teleport(game.PlaceId, getgenv().player)
+            if QueueTeleport then 
+                QueueTeleport(scriptContent) 
+            end
+            g.TeleportService:Teleport(game.PlaceId, g.player)
+            break
         end
     end
 end
 
-getgenv().GuiService.ErrorMessageChanged:Connect(onErrorMessageChanged)
-
-Library.addToggle(tab8, "Auto rejoin", "", getgenv().savedConfig and getgenv().savedConfig.autorejoin or false, function(state)
-    getgenv().savedConfig = getgenv().savedConfig or {}  
-    getgenv().savedConfig.autorejoin = state  
-    saveConfig(getgenv().savedConfig)  
-    getgenv().autoRejoin = state
-end)
+g.GuiService.ErrorMessageChanged:Connect(onErrorMessageChanged)
 
 setfpscap(math.huge)
 print("Fps unblock ×2")
