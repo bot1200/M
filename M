@@ -6,7 +6,7 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bot12
 
 local allowedUserIds = {2784663867, 87654321}
 
-local ui = Library:CreateUI("Murder Mystery 2 / 130", "By CapybaraScript")
+local ui = Library:CreateUI("Murder Mystery 2 / 137", "By CapybaraScript")
 
 getgenv().tab11 = ui:AddTab(false, "INFO")
 getgenv().tab1 = ui:AddTab(false, "Combat")
@@ -2036,6 +2036,105 @@ Library.addToggle(tab3, "ESP Name", "", false, function(state)
         stopESPName()
     end
 end)
+
+getgenv().sd = false
+getgenv().cl = Color3.fromRGB(255,255,255)
+getgenv().bc = Color3.fromRGB(0,0,0)
+
+local function gr(ch)
+	local rt = ch:FindFirstChild("HumanoidRootPart") or ch:FindFirstChild("Torso")
+	if not rt then
+		rt = ch:WaitForChild("HumanoidRootPart", 2) or ch:FindFirstChild("Torso")
+	end
+	return rt
+end
+
+local function cg(pl)
+	local ch = pl.Character
+	if not ch then return end
+	local rt = gr(ch)
+	if not rt then return end
+	if not rt:FindFirstChild("DistanceBillboard") then
+		local gb = Instance.new("BillboardGui")
+		gb.Name = "DistanceBillboard"
+		gb.Parent = rt
+		gb.Adornee = rt
+		gb.Size = UDim2.new(0,30,0,30)
+		gb.StudsOffset = Vector3.new(0,1,0)
+		gb.AlwaysOnTop = true
+		gb.ResetOnSpawn = false
+		gb.Enabled = getgenv().sd
+		local tl = Instance.new("TextLabel")
+		tl.Parent = gb
+		tl.Size = UDim2.new(1,0,1,0)
+		tl.BackgroundTransparency = 1
+		tl.TextScaled = true
+		tl.TextSize = 11
+		tl.TextColor3 = getgenv().cl
+		tl.TextStrokeTransparency = 0.8
+		tl.TextStrokeColor3 = getgenv().bc
+		tl.Text = "[0]"
+	end
+end
+
+Library.addToggle(tab3, "ESP Stunds", "", false, function(s)
+	getgenv().sd = s
+	for _, pl in ipairs(game.Players:GetPlayers()) do
+		if pl ~= game.Players.LocalPlayer and pl.Character then
+			cg(pl)
+			local rt = gr(pl.Character)
+			if rt then
+				local gb = rt:FindFirstChild("DistanceBillboard")
+				if gb then
+					gb.Enabled = getgenv().sd
+				end
+			end
+		end
+	end
+end)
+
+for _, pl in ipairs(game.Players:GetPlayers()) do
+	if pl ~= game.Players.LocalPlayer then
+		pl.CharacterAdded:Connect(function(ch)
+			cg(pl)
+		end)
+		if pl.Character then
+			cg(pl)
+		end
+	end
+end
+
+game.Players.PlayerAdded:Connect(function(pl)
+	if pl ~= game.Players.LocalPlayer then
+		pl.CharacterAdded:Connect(function(ch)
+			cg(pl)
+		end)
+	end
+end)
+
+game:GetService("RunService").Heartbeat:Connect(function()
+	if not getgenv().sd then return end
+	local lp = game.Players.LocalPlayer
+	if not lp or not lp.Character then return end
+	local rt = gr(lp.Character)
+	if not rt then return end
+	for _, pl in ipairs(game.Players:GetPlayers()) do
+		if pl ~= lp and pl.Character then
+			local r = gr(pl.Character)
+			if r then
+				local gb = r:FindFirstChild("DistanceBillboard")
+				if gb then
+					local tl = gb:FindFirstChildOfClass("TextLabel")
+					if tl then
+						local d = (r.Position - rt.Position).Magnitude
+						tl.Text = string.format("[%.1f]", d)
+					end
+				end
+			end
+		end
+	end
+end)
+
 Library.addToggle(tab3, "ESP Tracer", "", false, function(state)
     getgenv().T = state
     if not state then
@@ -2056,7 +2155,6 @@ local function getPlayerRole()
     for name, data in pairs(roles) do
         if name == LP.Name then
             playerRole = data.Role
-            print(LP.Name .. " has the role of " .. playerRole)
             break
         end
     end
