@@ -4021,9 +4021,10 @@ g.TeleportService = game:GetService("TeleportService")
 g.player = g.Players.LocalPlayer
 g.autoRejoin = false
 g.teleportQueued = false
+g.executedOnce = false  -- Bandera para controlar la ejecución
 
 local function onErrorMessageChanged(errorMessage)
-    if g.autoRejoin and errorMessage and errorMessage ~= "" then
+    if g.autoRejoin and errorMessage and errorMessage ~= "" and not g.executedOnce then
         print("Error detected: " .. errorMessage)
         if g.player and not g.teleportQueued then
             g.teleportQueued = true
@@ -4038,7 +4039,7 @@ local function onErrorMessageChanged(errorMessage)
                 QueueTeleport(scriptContent) 
             end
             g.TeleportService:Teleport(game.PlaceId, g.player)
-            break
+            g.executedOnce = true  -- Evita que se ejecute más de una vez
         end
     end
 end
